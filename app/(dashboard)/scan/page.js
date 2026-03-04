@@ -73,12 +73,12 @@ function ScanResultCard({ result, onDismiss }) {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function ScanPage() {
-  const [sessionId,   setSessionId]   = useState("");
-  const [section,     setSection]     = useState("A");
-  const [scanning,    setScanning]    = useState(false);
-  const [result,      setResult]      = useState(null);
-  const [manualCode,  setManualCode]  = useState("");
-  const [tab,         setTab]         = useState("camera");
+  const [sessionId,    setSessionId]    = useState("");
+  const [section,      setSection]      = useState("A");
+  const [scanning,     setScanning]     = useState(false);
+  const [result,       setResult]       = useState(null);
+  const [manualIndex,  setManualIndex]  = useState("");
+  const [tab,          setTab]          = useState("camera");
 
   const html5QrRef  = useRef(null);
   const lastScanned = useRef("");
@@ -92,10 +92,14 @@ export default function ScanPage() {
   });
   const activeSessions = sessionsData?.results ?? [];
 
-  // Scan mutation
+  // Scan mutation — sends the decoded index_number to the backend
   const scanMutation = useMutation({
-    mutationFn: (qr_code) =>
-      coreApi.scan({ qr_code, exam_session: Number(sessionId), section }).then((r) => r.data),
+    mutationFn: (index_number) =>
+      coreApi.scan({
+        index_number,
+        exam_session: Number(sessionId),
+        section,
+      }).then((r) => r.data),
     onSuccess: (data) => {
       setResult(data);
       if (data.status === "success") {
@@ -107,19 +111,24 @@ export default function ScanPage() {
     onError: (err) => {
       const detail = err?.response?.data;
       const msg =
-        detail?.qr_code?.[0] ??
+        detail?.index_number?.[0] ??
         detail?.detail ??
         (typeof detail === "string" ? detail : "Scan failed.");
       toast.error(msg);
     },
   });
 
+  /**
+   * Called with the raw text decoded from the QR code.
+   * Since QR codes only contain the student's index_number, we pass it directly.
+   */
   const handleScan = useCallback(
-    (qr) => {
-      if (!sessionId || cooldown.current || qr === lastScanned.current) return;
+    (decodedText) => {
+      const indexNumber = decodedText.trim();
+      if (!sessionId || cooldown.current || indexNumber === lastScanned.current) return;
       cooldown.current    = true;
-      lastScanned.current = qr;
-      scanMutation.mutate(qr);
+      lastScanned.current = indexNumber;
+      scanMutation.mutate(indexNumber);
       setTimeout(() => {
         cooldown.current    = false;
         lastScanned.current = "";
@@ -141,7 +150,7 @@ export default function ScanPage() {
         .start(
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 240, height: 240 } },
-          (code) => handleScan(code),
+          (decodedText) => handleScan(decodedText),
           () => {}
         )
         .catch(() => toast.error("Cannot access camera. Check permissions."));
@@ -160,9 +169,9 @@ export default function ScanPage() {
 
   const handleManualSubmit = (e) => {
     e.preventDefault();
-    if (!manualCode.trim() || !sessionId) return;
-    handleScan(manualCode.trim());
-    setManualCode("");
+    if (!manualIndex.trim() || !sessionId) return;
+    handleScan(manualIndex.trim());
+    setManualIndex("");
   };
 
   const ready = !!sessionId;
@@ -172,7 +181,9 @@ export default function ScanPage() {
       {/* Header */}
       <div>
         <h1 className="font-bold text-3xl text-white">QR Scanner</h1>
-        <p className="text-white/40 text-sm mt-1">Select a session and section, then start scanning.</p>
+        <p className="text-white/40 text-sm mt-1">
+          Select a session and section, then scan a student's QR code.
+        </p>
       </div>
 
       {/* Session + Section selectors */}
@@ -260,8 +271,10 @@ export default function ScanPage() {
             <div className="space-y-4">
               <div className="relative bg-navy-900 border border-white/[0.06] rounded-2xl overflow-hidden">
                 <div id="qr-scanner-div" className="w-full" />
+                {/* Corner brackets overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-52 h-52 border-2 border-teal-400/60 rounded-2xl">
+                  <div className="relative w-52 h-52">
+                    <div className="absolute inset-0 border-2 border-teal-400/20 rounded-2xl" />
                     <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-teal-400 rounded-tl-xl" />
                     <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-teal-400 rounded-tr-xl" />
                     <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-teal-400 rounded-bl-xl" />
@@ -269,6 +282,10 @@ export default function ScanPage() {
                   </div>
                 </div>
               </div>
+
+              <p className="text-center text-xs text-white/30">
+                Point the camera at a student's QR code — the index number will be read automatically.
+              </p>
 
               <button
                 onClick={stopScanning}
@@ -285,18 +302,21 @@ export default function ScanPage() {
       {tab === "manual" && (
         <form onSubmit={handleManualSubmit} className="space-y-3">
           <div className="space-y-2">
-            <label className="text-xs font-medium text-white/50">QR Code / Index Number</label>
+            <label className="text-xs font-medium text-white/50">Student Index Number</label>
             <input
-              value={manualCode}
-              onChange={(e) => setManualCode(e.target.value)}
-              placeholder="Enter or paste QR code value…"
+              value={manualIndex}
+              onChange={(e) => setManualIndex(e.target.value)}
+              placeholder="Enter student index number…"
               autoFocus
               className="w-full h-12 px-4 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 font-mono"
             />
+            <p className="text-xs text-white/25">
+              This is the same value encoded in the student's QR code.
+            </p>
           </div>
           <button
             type="submit"
-            disabled={!ready || !manualCode.trim() || scanMutation.isPending}
+            disabled={!ready || !manualIndex.trim() || scanMutation.isPending}
             className="w-full h-12 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
           >
             <Scan className="w-4 h-4" />

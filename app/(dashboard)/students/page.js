@@ -2,13 +2,90 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { coreApi } from "@/lib/api";
-import { Plus, Search, Loader2, Edit2, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { coreApi, getQRCodeUrl } from "@/lib/api";
+import {
+  Plus, Search, Loader2, Edit2, Trash2, X,
+  ChevronLeft, ChevronRight, QrCode, Download,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 
 const inputCls =
   "w-full h-10 px-3 rounded-xl bg-navy-950 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
+
+// ── QR Code Modal ──────────────────────────────────────────────────────────────
+/**
+ * Displays the QR code for a student generated via the qrserver.com API.
+ * The QR code encodes ONLY the student's index_number.
+ */
+function QRCodeModal({ student, onClose }) {
+  const qrUrl     = getQRCodeUrl(student.index_number, 260);
+  const qrUrlLarge = getQRCodeUrl(student.index_number, 600);
+
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href     = qrUrlLarge;
+    link.download = `qr_${student.index_number}.png`;
+    link.target   = "_blank";
+    link.click();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-xs"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+          <h2 className="font-bold text-base text-white">Student QR Code</h2>
+          <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* QR image */}
+        <div className="p-6 flex flex-col items-center gap-4">
+          <div className="bg-white p-3 rounded-2xl shadow-lg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={qrUrl}
+              alt={`QR code for ${student.index_number}`}
+              width={200}
+              height={200}
+              className="block rounded-lg"
+            />
+          </div>
+
+          <div className="text-center">
+            <p className="font-mono font-bold text-teal-400 text-sm tracking-wider">
+              {student.index_number}
+            </p>
+            <p className="text-white/70 text-sm mt-0.5">{student.full_name}</p>
+            <p className="text-white/35 text-xs mt-0.5">
+              {student.programme_name} · {student.level_name}
+            </p>
+          </div>
+
+          <p className="text-white/25 text-xs text-center">
+            This QR code encodes the student's index number. Point the scanner at it to record attendance.
+          </p>
+
+          <button
+            onClick={handleDownload}
+            className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-sm font-medium transition-all"
+          >
+            <Download className="w-4 h-4" />
+            Download QR Code
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Student Modal ──────────────────────────────────────────────────────────────
 function StudentModal({ student, programs, levels, onClose }) {
@@ -20,7 +97,6 @@ function StudentModal({ student, programs, levels, onClose }) {
     programme:    student?.programme?.toString() ?? "",
     level:        student?.level?.toString()     ?? "",
     gender:       student?.gender ?? "",
-    qr_code:      "",
   });
 
   const upd = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -45,17 +121,13 @@ function StudentModal({ student, programs, levels, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = {
+    mutation.mutate({
       index_number: form.index_number.trim(),
       full_name:    form.full_name.trim(),
       programme:    Number(form.programme),
       level:        Number(form.level),
       gender:       form.gender,
-    };
-    if (!student) {
-      payload.qr_code = form.qr_code.trim() || form.index_number.trim();
-    }
-    mutation.mutate(payload);
+    });
   };
 
   return (
@@ -82,7 +154,11 @@ function StudentModal({ student, programs, levels, onClose }) {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Gender</label>
-              <select value={form.gender} onChange={(e) => upd("gender", e.target.value)} className={inputCls + " appearance-none"}>
+              <select
+                value={form.gender}
+                onChange={(e) => upd("gender", e.target.value)}
+                className={inputCls + " appearance-none"}
+              >
                 <option value="">—</option>
                 <option value="M">Male</option>
                 <option value="F">Female</option>
@@ -104,37 +180,55 @@ function StudentModal({ student, programs, levels, onClose }) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Programme *</label>
-              <select value={form.programme} onChange={(e) => upd("programme", e.target.value)} required className={inputCls + " appearance-none"}>
+              <select
+                value={form.programme}
+                onChange={(e) => upd("programme", e.target.value)}
+                required
+                className={inputCls + " appearance-none"}
+              >
                 <option value="">Select…</option>
-                {programs.map((p) => <option key={p.id} value={p.id}>{p.code}</option>)}
+                {programs.map((p) => (
+                  <option key={p.id} value={p.id}>{p.code}</option>
+                ))}
               </select>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Level *</label>
-              <select value={form.level} onChange={(e) => upd("level", e.target.value)} required className={inputCls + " appearance-none"}>
+              <select
+                value={form.level}
+                onChange={(e) => upd("level", e.target.value)}
+                required
+                className={inputCls + " appearance-none"}
+              >
                 <option value="">Select…</option>
-                {levels.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                {levels.map((l) => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          {!student && (
-            <div className="space-y-1.5">
-              <label className="text-xs text-white/40">QR Code value <span className="text-white/25">(defaults to index number)</span></label>
-              <input
-                value={form.qr_code}
-                onChange={(e) => upd("qr_code", e.target.value)}
-                placeholder={form.index_number || "Leave blank to use index number"}
-                className={inputCls}
-              />
-            </div>
-          )}
+          {/* Info note */}
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-teal-500/5 border border-teal-500/15">
+            <QrCode className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-teal-400/80">
+              A QR code encoding the index number will be automatically available for this student.
+            </p>
+          </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm transition-colors"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={mutation.isPending} className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all">
+            <button
+              type="submit"
+              disabled={mutation.isPending}
+              className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+            >
               {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
               {student ? "Save Changes" : "Add Student"}
             </button>
@@ -156,6 +250,7 @@ export default function StudentsPage() {
   const [level,     setLevel]     = useState("");
   const [page,      setPage]      = useState(1);
   const [modal,     setModal]     = useState({ open: false, student: null });
+  const [qrStudent, setQrStudent] = useState(null); // student whose QR is being shown
 
   const params = { page, page_size: PAGE_SIZE };
   if (search)    params.search    = search;
@@ -249,7 +344,10 @@ export default function StudentsPage() {
               <thead>
                 <tr className="border-b border-white/[0.06]">
                   {["Index", "Name", "Programme", "Level", "Gender", "Status", ""].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-white/30 uppercase tracking-wider">
+                    <th
+                      key={h}
+                      className="text-left px-4 py-3 text-xs font-semibold text-white/30 uppercase tracking-wider"
+                    >
                       {h}
                     </th>
                   ))}
@@ -277,16 +375,28 @@ export default function StudentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* View QR Code */}
+                        <button
+                          onClick={() => setQrStudent(s)}
+                          title="View QR Code"
+                          className="p-1.5 rounded-lg text-teal-400/40 hover:text-teal-400 hover:bg-teal-500/5 transition-colors"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                        </button>
+                        {/* Edit */}
                         <button
                           onClick={() => setModal({ open: true, student: s })}
+                          title="Edit student"
                           className="p-1.5 rounded-lg text-white/30 hover:text-white/80 hover:bg-white/5 transition-colors"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
+                        {/* Delete */}
                         <button
                           onClick={() => {
                             if (confirm(`Remove ${s.full_name}?`)) deleteMutation.mutate(s.id);
                           }}
+                          title="Delete student"
                           className="p-1.5 rounded-lg text-rose-400/30 hover:text-rose-400 hover:bg-rose-500/5 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -326,12 +436,21 @@ export default function StudentsPage() {
         </div>
       )}
 
+      {/* Student create/edit modal */}
       {modal.open && (
         <StudentModal
           student={modal.student}
           programs={programsList}
           levels={levelsList}
           onClose={() => setModal({ open: false, student: null })}
+        />
+      )}
+
+      {/* QR Code viewer modal */}
+      {qrStudent && (
+        <QRCodeModal
+          student={qrStudent}
+          onClose={() => setQrStudent(null)}
         />
       )}
     </div>
