@@ -4,14 +4,20 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { coreApi } from "@/lib/api";
 import {
-  Scan, CheckCircle2, AlertTriangle, XCircle,
-  Camera, StopCircle, ChevronDown, Keyboard,
+  Scan,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Camera,
+  StopCircle,
+  ChevronDown,
+  Keyboard,
 } from "lucide-react";
 import { formatDateTime, cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
 function ScanResultCard({ result, onDismiss }) {
-  const isSuccess   = result.status === "success";
+  const isSuccess = result.status === "success";
   const isDuplicate = result.status === "duplicate";
 
   useEffect(() => {
@@ -20,40 +26,55 @@ function ScanResultCard({ result, onDismiss }) {
   }, [onDismiss]);
 
   return (
-    <div className={cn(
-      "rounded-2xl border p-5 animate-fade-up",
-      isSuccess   && "bg-teal-500/5 border-teal-500/25",
-      isDuplicate && "bg-amber-500/5 border-amber-500/25"
-    )}>
+    <div
+      className={cn(
+        "rounded-2xl border p-5 animate-fade-up",
+        isSuccess && "bg-teal-500/5 border-teal-500/25",
+        isDuplicate && "bg-amber-500/5 border-amber-500/25",
+      )}
+    >
       <div className="flex items-start gap-4">
-        <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
-          isSuccess   && "bg-teal-500/10",
-          isDuplicate && "bg-amber-500/10"
-        )}>
-          {isSuccess   && <CheckCircle2 className="w-6 h-6 text-teal-400" />}
+        <div
+          className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
+            isSuccess && "bg-teal-500/10",
+            isDuplicate && "bg-amber-500/10",
+          )}
+        >
+          {isSuccess && <CheckCircle2 className="w-6 h-6 text-teal-400" />}
           {isDuplicate && <AlertTriangle className="w-6 h-6 text-amber-400" />}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className={cn(
-              "text-sm font-semibold",
-              isSuccess   && "text-teal-400",
-              isDuplicate && "text-amber-400"
-            )}>
+            <span
+              className={cn(
+                "text-sm font-semibold",
+                isSuccess && "text-teal-400",
+                isDuplicate && "text-amber-400",
+              )}
+            >
               {isSuccess ? "Recorded" : "Duplicate Scan"}
             </span>
-            <span className="text-white/30 text-xs">Section {result.attendance?.section}</span>
+            <span className="text-white/30 text-xs">
+              Section {result.attendance?.section}
+            </span>
           </div>
 
-          <p className="font-semibold text-white">{result.student?.full_name}</p>
-          <p className="text-white/50 text-sm font-mono">{result.student?.index_number}</p>
+          <p className="font-semibold text-white">
+            {result.student?.full_name}
+          </p>
+          <p className="text-white/50 text-sm font-mono">
+            {result.student?.index_number}
+          </p>
 
           <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-white/35">
             <span>{result.student?.programme_name}</span>
             {result.student?.level_name && (
-              <><span>·</span><span>{result.student.level_name}</span></>
+              <>
+                <span>·</span>
+                <span>{result.student.level_name}</span>
+              </>
             )}
           </div>
 
@@ -64,12 +85,21 @@ function ScanResultCard({ result, onDismiss }) {
           )}
         </div>
 
-        <button onClick={onDismiss} className="text-white/20 hover:text-white/50 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="text-white/20 hover:text-white/50 transition-colors"
+        >
           <XCircle className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
+}
+
+function vibrate(pattern) {
+  if (typeof navigator !== "undefined" && navigator.vibrate) {
+    navigator.vibrate(pattern);
+  }
 }
 
 async function safeStop(scanner) {
@@ -79,82 +109,140 @@ async function safeStop(scanner) {
     if (state === 2 || state === 3) {
       await scanner.stop();
     }
-  } catch {
-  }
+  } catch {}
 }
 
 export default function ScanPage() {
-  const [sessionId,   setSessionId]   = useState("");
-  const [section,     setSection]     = useState("A");
-  const [scanning,    setScanning]    = useState(false);
-  const [result,      setResult]      = useState(null);
+  const [sessionId, setSessionId] = useState("");
+  const [section, setSection] = useState("A");
+  const [scanning, setScanning] = useState(false);
+  const [result, setResult] = useState(null);
   const [manualIndex, setManualIndex] = useState("");
-  const [tab,         setTab]         = useState("camera");
+  const [tab, setTab] = useState("camera");
 
   const html5QrRef = useRef(null);
-  const sessionIdRef  = useRef(sessionId);
-  const sectionRef    = useRef(section);
-  const cooldown      = useRef(false);
-  const lastScanned   = useRef("");
-  const mutateRef     = useRef(null);
+  const sessionIdRef = useRef(sessionId);
+  const sectionRef = useRef(section);
+  const cooldown = useRef(false);
+  const lastScanned = useRef("");
+  const mutateRef = useRef(null);
 
-  useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
-  useEffect(() => { sectionRef.current   = section;   }, [section]);
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+  useEffect(() => {
+    sectionRef.current = section;
+  }, [section]);
 
   // Active sessions
   const { data: sessionsData } = useQuery({
-    queryKey:        ["sessions", { status: "active" }],
-    queryFn:         () => coreApi.sessions.list({ status: "active", page_size: 50 }).then((r) => r.data),
+    queryKey: ["sessions", { status: "active" }],
+    queryFn: () =>
+      coreApi.sessions
+        .list({ status: "active", page_size: 50 })
+        .then((r) => r.data),
     refetchInterval: 20_000,
   });
   const activeSessions = sessionsData?.results ?? [];
 
   // Scan mutation
+  // const scanMutation = useMutation({
+  //   mutationFn: (index_number) =>
+  //     coreApi
+  //       .scan({
+  //         index_number,
+  //         exam_session: Number(sessionIdRef.current),
+  //         section: sectionRef.current,
+  //       })
+  //       .then((r) => r.data),
+  //   onSuccess: (data) => {
+  //     setResult(data);
+  //     if (data.status === "success") {
+  //       toast.success(`✓ ${data.student?.full_name}`);
+  //     } else {
+  //       toast(`Already scanned – ${data.student?.full_name}`, {
+  //         icon: "⚠️",
+  //         id: "duplicate-scan",
+  //       });
+  //     }
+  //   },
+  //   onError: (err) => {
+  //     const detail = err?.response?.data;
+  //     const msg =
+  //       detail?.index_number?.[0] ??
+  //       detail?.detail ??
+  //       (typeof detail === "string" ? detail : "Scan failed.");
+  //     toast.error(msg, { id: "scan-error" });
+  //   },
+  // });
+
   const scanMutation = useMutation({
-    mutationFn: (index_number) =>
-      coreApi.scan({
-        index_number,
-        exam_session: Number(sessionIdRef.current),
-        section:      sectionRef.current,
-      }).then((r) => r.data),
-    onSuccess: (data) => {
-      setResult(data);
-      if (data.status === "success") {
-        toast.success(`✓ ${data.student?.full_name}`);
-      } else {
-        // Show the result card; no separate toast for duplicates to avoid
-        // repeated popups when the same QR is held in frame.
-        toast(`Already scanned – ${data.student?.full_name}`, {
-          icon: "⚠️",
-          id:   "duplicate-scan", // deduplicate: only one toast at a time
-        });
-      }
-    },
-    onError: (err) => {
-      const detail = err?.response?.data;
-      const msg =
-        detail?.index_number?.[0] ??
-        detail?.detail ??
-        (typeof detail === "string" ? detail : "Scan failed.");
-      toast.error(msg, { id: "scan-error" });
-    },
-  });
+  mutationFn: (index_number) =>
+    coreApi.scan({
+      index_number,
+      exam_session: Number(sessionIdRef.current),
+      section: sectionRef.current,
+    }).then((r) => r.data),
+
+  onSuccess: (data) => {
+    setResult(data);
+
+    if (data.status === "success") {
+      toast.success(`✓ ${data.student?.full_name}`);
+
+      // short success vibration
+      vibrate(80);
+    }
+
+    else if (data.status === "duplicate") {
+      toast(`Already scanned – ${data.student?.full_name}`, {
+        icon: "⚠️",
+        id: "duplicate-scan",
+      });
+
+      // warning vibration
+      vibrate([120, 60, 120]);
+    }
+
+    else if (data.status === "ineligible") {
+      toast.error(data.message ?? "Student not eligible");
+
+      // error vibration
+      vibrate([300, 100, 300]);
+    }
+  },
+
+  onError: (err) => {
+    const detail = err?.response?.data;
+
+    const msg =
+      detail?.index_number?.[0] ??
+      detail?.detail ??
+      (typeof detail === "string" ? detail : "Scan failed.");
+
+    toast.error(msg, { id: "scan-error" });
+
+    // strong error vibration
+    vibrate([300, 150, 300]);
+  },
+});
+
 
   mutateRef.current = scanMutation.mutate;
 
   const handleScan = useCallback((decodedText) => {
     const indexNumber = decodedText.trim();
-    if (!sessionIdRef.current) return;         
-    if (cooldown.current) return;              
+    if (!sessionIdRef.current) return;
+    if (cooldown.current) return;
     if (indexNumber === lastScanned.current) return;
 
-    cooldown.current    = true;
+    cooldown.current = true;
     lastScanned.current = indexNumber;
 
     mutateRef.current(indexNumber);
 
     setTimeout(() => {
-      cooldown.current    = false;
+      cooldown.current = false;
       lastScanned.current = "";
     }, 3000);
   }, []);
@@ -175,7 +263,7 @@ export default function ScanPage() {
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 240, height: 240 } },
           (decodedText) => handleScan(decodedText),
-          () => {} // per-frame error — ignore
+          () => {}, // per-frame error — ignore
         )
         .catch(() => {
           if (isMounted) {
@@ -195,8 +283,8 @@ export default function ScanPage() {
 
   const stopScanning = useCallback(async () => {
     await safeStop(html5QrRef.current);
-    html5QrRef.current  = null;
-    cooldown.current    = false;
+    html5QrRef.current = null;
+    cooldown.current = false;
     lastScanned.current = "";
     setScanning(false);
   }, []);
@@ -223,7 +311,9 @@ export default function ScanPage() {
       {/* Session + Section selectors */}
       <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-4">
         <div className="space-y-2">
-          <label className="text-xs font-medium text-white/50">Exam Session *</label>
+          <label className="text-xs font-medium text-white/50">
+            Exam Session *
+          </label>
           <div className="relative">
             <select
               value={sessionId}
@@ -231,7 +321,9 @@ export default function ScanPage() {
               className="w-full h-11 px-4 pr-10 rounded-xl bg-navy-800 border border-white/10 text-white text-sm focus:outline-none focus:border-teal-500/40 appearance-none"
             >
               <option value="">
-                {activeSessions.length === 0 ? "No active sessions" : "Select session…"}
+                {activeSessions.length === 0
+                  ? "No active sessions"
+                  : "Select session…"}
               </option>
               {activeSessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -254,7 +346,7 @@ export default function ScanPage() {
                   "flex-1 h-11 rounded-xl border text-sm font-semibold transition-all",
                   section === s
                     ? "bg-teal-500/10 text-teal-400 border-teal-500/30"
-                    : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
+                    : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20",
                 )}
               >
                 Section {s}
@@ -270,19 +362,29 @@ export default function ScanPage() {
       {/* Tab selector */}
       <div className="flex gap-2 bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
         <button
-          onClick={() => { stopScanning(); setTab("camera"); }}
+          onClick={() => {
+            stopScanning();
+            setTab("camera");
+          }}
           className={cn(
             "flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-medium transition-all",
-            tab === "camera" ? "bg-white/[0.06] text-white" : "text-white/40 hover:text-white/70"
+            tab === "camera"
+              ? "bg-white/[0.06] text-white"
+              : "text-white/40 hover:text-white/70",
           )}
         >
           <Camera className="w-4 h-4" /> Camera
         </button>
         <button
-          onClick={() => { stopScanning(); setTab("manual"); }}
+          onClick={() => {
+            stopScanning();
+            setTab("manual");
+          }}
           className={cn(
             "flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-medium transition-all",
-            tab === "manual" ? "bg-white/[0.06] text-white" : "text-white/40 hover:text-white/70"
+            tab === "manual"
+              ? "bg-white/[0.06] text-white"
+              : "text-white/40 hover:text-white/70",
           )}
         >
           <Keyboard className="w-4 h-4" /> Manual
@@ -317,7 +419,8 @@ export default function ScanPage() {
               </div>
 
               <p className="text-center text-xs text-white/30">
-                Point the camera at a student's QR code — the index number will be read automatically.
+                Point the camera at a student's QR code — the index number will
+                be read automatically.
               </p>
 
               <button
@@ -335,7 +438,9 @@ export default function ScanPage() {
       {tab === "manual" && (
         <form onSubmit={handleManualSubmit} className="space-y-3">
           <div className="space-y-2">
-            <label className="text-xs font-medium text-white/50">Student Index Number</label>
+            <label className="text-xs font-medium text-white/50">
+              Student Index Number
+            </label>
             <input
               value={manualIndex}
               onChange={(e) => setManualIndex(e.target.value)}
@@ -368,7 +473,8 @@ export default function ScanPage() {
         <div className="flex items-center gap-2 text-xs text-white/25 justify-center">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
           Scanning Section {section} ·{" "}
-          {activeSessions.find((s) => String(s.id) === String(sessionId))?.course_code ?? ""}
+          {activeSessions.find((s) => String(s.id) === String(sessionId))
+            ?.course_code ?? ""}
         </div>
       )}
     </div>
