@@ -123,9 +123,6 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
-        <p className="text-[10px] font-semibold text-white/20 px-3 py-2 uppercase tracking-widest">
-          Menu
-        </p>
         {allowed.map(({ href, icon, label }) => (
           <NavItem
             key={href}
