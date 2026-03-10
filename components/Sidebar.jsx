@@ -10,6 +10,7 @@ import {
   Users,
   UserCheck,
   ArrowUpNarrowWide,
+  NotebookTabs,
   LogOut,
   ChevronRight,
   Menu,
@@ -60,6 +61,12 @@ const NAV = [
     href:  "/level",
     icon:  ArrowUpNarrowWide,
     label: "Level",
+    roles: ["admin"],
+  },
+  {
+    href:  "/program",
+    icon:  NotebookTabs,
+    label: "Program",
     roles: ["admin"],
   },
 ];
