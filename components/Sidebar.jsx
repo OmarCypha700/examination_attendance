@@ -8,6 +8,8 @@ import {
   BookOpen,
   GraduationCap,
   Users,
+  UserCheck,
+  ArrowUpNarrowWide,
   LogOut,
   ChevronRight,
   Menu,
@@ -22,7 +24,7 @@ const NAV = [
     href:  "/dashboard",
     icon:  LayoutDashboard,
     label: "Dashboard",
-    roles: ["admin", "invigilator"],
+    roles: ["admin",],
   },
   {
     href:  "/scan",
@@ -34,11 +36,11 @@ const NAV = [
     href:  "/sessions",
     icon:  BookOpen,
     label: "Exam Sessions",
-    roles: ["admin", "invigilator"],
+    roles: ["admin",],
   },
   {
     href:  "/students",
-    icon:  GraduationCap,
+    icon:  UserCheck,
     label: "Students",
     roles: ["admin"],
   },
@@ -46,6 +48,18 @@ const NAV = [
     href:  "/users",
     icon:  Users,
     label: "Staff Users",
+    roles: ["admin"],
+  },
+    {
+    href:  "/courses",
+    icon:  GraduationCap,
+    label: "Courses",
+    roles: ["admin"],
+  },
+  {
+    href:  "/level",
+    icon:  ArrowUpNarrowWide,
+    label: "Level",
     roles: ["admin"],
   },
 ];
@@ -120,7 +134,7 @@ export function Sidebar() {
       <div className="p-3 border-t border-white/[0.05] space-y-1">
         <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
           <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-teal-400">
+            <span className="uppercase text-xs font-bold text-teal-400">
               {user?.username?.[0]?.toUpperCase() ?? "?"}
             </span>
           </div>
@@ -159,7 +173,7 @@ export function Sidebar() {
 
       {/* Mobile trigger */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-navy-800 border border-white/10 flex items-center justify-center text-white/60 hover:text-white"
+        className="lg:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-xl bg-navy-800 border border-white/10 flex items-center justify-center text-white/60 hover:text-white"
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="w-5 h-5" />

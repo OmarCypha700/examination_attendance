@@ -6,80 +6,54 @@ import { coreApi, getQRCodeUrl } from "@/lib/api";
 import {
   Plus, Search, Loader2, Edit2, Trash2, X,
   ChevronLeft, ChevronRight, QrCode, Download,
+  Upload, FileDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
+import { ImportModal } from "@/components/ImportModal";
 
 const inputCls =
   "w-full h-10 px-3 rounded-xl bg-navy-950 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
 
-// ── QR Code Modal ──────────────────────────────────────────────────────────────
-/**
- * Displays the QR code for a student generated via the qrserver.com API.
- * The QR code encodes ONLY the student's index_number.
- */
+// ── QR Code Modal ─────────────────────────────────────────────────────────────
 function QRCodeModal({ student, onClose }) {
-  const qrUrl     = getQRCodeUrl(student.index_number, 260);
+  const qrUrl      = getQRCodeUrl(student.index_number, 260);
   const qrUrlLarge = getQRCodeUrl(student.index_number, 600);
 
   const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href     = qrUrlLarge;
-    link.download = `qr_${student.index_number}.png`;
-    link.target   = "_blank";
+    const link = Object.assign(document.createElement("a"), {
+      href: qrUrlLarge, download: `qr_${student.index_number}.png`, target: "_blank",
+    });
     link.click();
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-xs"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
+    <div className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
           <h2 className="font-bold text-base text-white">Student QR Code</h2>
           <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
-
-        {/* QR image */}
         <div className="p-6 flex flex-col items-center gap-4">
           <div className="bg-white p-3 rounded-2xl shadow-lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qrUrl}
-              alt={`QR code for ${student.index_number}`}
-              width={200}
-              height={200}
-              className="block rounded-lg"
-            />
+            <img src={qrUrl} alt={`QR for ${student.index_number}`} width={200} height={200} className="block rounded-lg" />
           </div>
-
           <div className="text-center">
-            <p className="font-mono font-bold text-teal-400 text-sm tracking-wider">
-              {student.index_number}
-            </p>
+            <p className="font-mono font-bold text-teal-400 text-sm tracking-wider">{student.index_number}</p>
             <p className="text-white/70 text-sm mt-0.5">{student.full_name}</p>
-            <p className="text-white/35 text-xs mt-0.5">
-              {student.programme_name} · {student.level_name}
-            </p>
+            <p className="text-white/35 text-xs mt-0.5">{student.programme_name} · {student.level_name}</p>
           </div>
-
           <p className="text-white/25 text-xs text-center">
-            This QR code encodes the student's index number. Point the scanner at it to record attendance.
+            Encodes the student's index number. Point the scanner at it to record attendance.
           </p>
-
           <button
             onClick={handleDownload}
             className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-sm font-medium transition-all"
           >
-            <Download className="w-4 h-4" />
-            Download QR Code
+            <Download className="w-4 h-4" /> Download QR Code
           </button>
         </div>
       </div>
@@ -87,10 +61,9 @@ function QRCodeModal({ student, onClose }) {
   );
 }
 
-// ── Student Modal ──────────────────────────────────────────────────────────────
+// ── Student Modal ─────────────────────────────────────────────────────────────
 function StudentModal({ student, programs, levels, onClose }) {
   const qc = useQueryClient();
-
   const [form, setForm] = useState({
     index_number: student?.index_number ?? "",
     full_name:    student?.full_name    ?? "",
@@ -98,7 +71,6 @@ function StudentModal({ student, programs, levels, onClose }) {
     level:        student?.level?.toString()     ?? "",
     gender:       student?.gender ?? "",
   });
-
   const upd = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const mutation = useMutation({
@@ -111,11 +83,7 @@ function StudentModal({ student, programs, levels, onClose }) {
     },
     onError: (err) => {
       const detail = err?.response?.data;
-      toast.error(
-        typeof detail === "string"
-          ? detail
-          : Object.values(detail ?? {})?.[0]?.[0] ?? "Error"
-      );
+      toast.error(typeof detail === "string" ? detail : Object.values(detail ?? {})?.[0]?.[0] ?? "Error");
     },
   });
 
@@ -135,100 +103,46 @@ function StudentModal({ student, programs, levels, onClose }) {
       <div className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
           <h2 className="font-bold text-lg text-white">{student ? "Edit Student" : "Add Student"}</h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
+          <button onClick={onClose} className="text-white/30 hover:text-white/70"><X className="w-5 h-5" /></button>
         </div>
-
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Index Number *</label>
-              <input
-                value={form.index_number}
-                onChange={(e) => upd("index_number", e.target.value)}
-                required
-                placeholder="2024/0001"
-                className={inputCls}
-              />
+              <input value={form.index_number} onChange={(e) => upd("index_number", e.target.value)} required placeholder="2024/0001" className={inputCls} />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Gender</label>
-              <select
-                value={form.gender}
-                onChange={(e) => upd("gender", e.target.value)}
-                className={inputCls + " appearance-none"}
-              >
+              <select value={form.gender} onChange={(e) => upd("gender", e.target.value)} className={inputCls + " appearance-none"}>
                 <option value="">—</option>
                 <option value="M">Male</option>
                 <option value="F">Female</option>
               </select>
             </div>
           </div>
-
           <div className="space-y-1.5">
             <label className="text-xs text-white/40">Full Name *</label>
-            <input
-              value={form.full_name}
-              onChange={(e) => upd("full_name", e.target.value)}
-              required
-              placeholder="John Doe"
-              className={inputCls}
-            />
+            <input value={form.full_name} onChange={(e) => upd("full_name", e.target.value)} required placeholder="John Doe" className={inputCls} />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Programme *</label>
-              <select
-                value={form.programme}
-                onChange={(e) => upd("programme", e.target.value)}
-                required
-                className={inputCls + " appearance-none"}
-              >
+              <select value={form.programme} onChange={(e) => upd("programme", e.target.value)} required className={inputCls + " appearance-none"}>
                 <option value="">Select…</option>
-                {programs.map((p) => (
-                  <option key={p.id} value={p.id}>{p.code}</option>
-                ))}
+                {programs.map((p) => <option key={p.id} value={p.id}>{p.code}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-white/40">Level *</label>
-              <select
-                value={form.level}
-                onChange={(e) => upd("level", e.target.value)}
-                required
-                className={inputCls + " appearance-none"}
-              >
+              <select value={form.level} onChange={(e) => upd("level", e.target.value)} required className={inputCls + " appearance-none"}>
                 <option value="">Select…</option>
-                {levels.map((l) => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
+                {levels.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
             </div>
           </div>
-
-          {/* Info note */}
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-teal-500/5 border border-teal-500/15">
-            <QrCode className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-teal-400/80">
-              A QR code encoding the index number will be automatically available for this student.
-            </p>
-          </div>
-
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-            >
+            <button type="button" onClick={onClose} className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm transition-colors">Cancel</button>
+            <button type="submit" disabled={mutation.isPending} className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all">
               {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
               {student ? "Save Changes" : "Add Student"}
             </button>
@@ -239,18 +153,20 @@ function StudentModal({ student, programs, levels, onClose }) {
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 50;
 
 export default function StudentsPage() {
   const qc = useQueryClient();
 
-  const [search,    setSearch]    = useState("");
-  const [programme, setProgramme] = useState("");
-  const [level,     setLevel]     = useState("");
-  const [page,      setPage]      = useState(1);
-  const [modal,     setModal]     = useState({ open: false, student: null });
-  const [qrStudent, setQrStudent] = useState(null); // student whose QR is being shown
+  const [search,     setSearch]     = useState("");
+  const [programme,  setProgramme]  = useState("");
+  const [level,      setLevel]      = useState("");
+  const [page,       setPage]       = useState(1);
+  const [modal,      setModal]      = useState({ open: false, student: null });
+  const [qrStudent,  setQrStudent]  = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [exporting,  setExporting]  = useState(false);
 
   const params = { page, page_size: PAGE_SIZE };
   if (search)    params.search    = search;
@@ -261,22 +177,21 @@ export default function StudentsPage() {
     queryKey: ["students", params],
     queryFn:  () => coreApi.students.list(params).then((r) => r.data),
   });
-
-  const { data: programs } = useQuery({
-    queryKey: ["programs"],
-    queryFn:  () => coreApi.programs.list().then((r) => r.data),
-  });
-
-  const { data: levels } = useQuery({
-    queryKey: ["levels"],
-    queryFn:  () => coreApi.levels.list().then((r) => r.data),
-  });
+  const { data: programs } = useQuery({ queryKey: ["programs"], queryFn: () => coreApi.programs.list().then((r) => r.data) });
+  const { data: levels }   = useQuery({ queryKey: ["levels"],   queryFn: () => coreApi.levels.list().then((r) => r.data) });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => coreApi.students.delete(id),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: ["students"] }); toast.success("Student removed"); },
     onError:    () => toast.error("Cannot delete student"),
   });
+
+  const handleExport = async (fmt) => {
+    setExporting(true);
+    try { await coreApi.students.export(fmt); }
+    catch { toast.error("Export failed."); }
+    finally { setExporting(false); }
+  };
 
   const students     = data?.results ?? [];
   const programsList = programs ?? [];
@@ -286,45 +201,60 @@ export default function StudentsPage() {
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-bold text-3xl text-white">Students</h1>
           <p className="text-white/40 text-sm mt-1">{data?.count ?? 0} registered</p>
         </div>
-        <button
-          onClick={() => setModal({ open: true, student: null })}
-          className="flex items-center gap-2 px-4 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm transition-all shadow-[0_0_20px_rgba(45,212,191,0.2)]"
-        >
-          <Plus className="w-4 h-4" /> Add Student
-        </button>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Export */}
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => handleExport("xlsx")}
+              disabled={exporting}
+              className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40"
+            >
+              <FileDown className="w-3.5 h-3.5" /> XLSX
+            </button>
+            <button
+              onClick={() => handleExport("csv")}
+              disabled={exporting}
+              className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40"
+            >
+              <FileDown className="w-3.5 h-3.5" /> CSV
+            </button>
+          </div>
+
+          {/* Import */}
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-teal-500/25 bg-teal-500/5 text-teal-400 hover:bg-teal-500/10 text-xs font-medium transition-all"
+          >
+            <Upload className="w-3.5 h-3.5" /> Import
+          </button>
+
+          {/* Add */}
+          <button
+            onClick={() => setModal({ open: true, student: null })}
+            className="flex items-center gap-2 px-4 h-9 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm transition-all shadow-[0_0_20px_rgba(45,212,191,0.2)]"
+          >
+            <Plus className="w-4 h-4" /> Add Student
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-48 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
-          <input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search name or index…"
-            className="w-full h-10 pl-9 pr-4 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-teal-500/40"
-          />
+          <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search name or index…" className="w-full h-10 pl-9 pr-4 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/25 text-sm focus:outline-none focus:border-teal-500/40" />
         </div>
-
-        <select
-          value={programme}
-          onChange={(e) => { setProgramme(e.target.value); setPage(1); }}
-          className="h-10 px-3 rounded-xl bg-navy-800 border border-white/10 text-white/70 text-sm focus:outline-none focus:border-teal-500/40 appearance-none min-w-[140px]"
-        >
+        <select value={programme} onChange={(e) => { setProgramme(e.target.value); setPage(1); }} className="h-10 px-3 rounded-xl bg-navy-800 border border-white/10 text-white/70 text-sm focus:outline-none appearance-none min-w-[140px]">
           <option value="">All Programmes</option>
           {programsList.map((p) => <option key={p.id} value={p.id}>{p.code}</option>)}
         </select>
-
-        <select
-          value={level}
-          onChange={(e) => { setLevel(e.target.value); setPage(1); }}
-          className="h-10 px-3 rounded-xl bg-navy-800 border border-white/10 text-white/70 text-sm focus:outline-none focus:border-teal-500/40 appearance-none min-w-[120px]"
-        >
+        <select value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }} className="h-10 px-3 rounded-xl bg-navy-800 border border-white/10 text-white/70 text-sm focus:outline-none appearance-none min-w-[120px]">
           <option value="">All Levels</option>
           {levelsList.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
         </select>
@@ -333,9 +263,7 @@ export default function StudentsPage() {
       {/* Table */}
       <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
-          </div>
+          <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 text-teal-400 animate-spin" /></div>
         ) : students.length === 0 ? (
           <div className="text-center py-16 text-white/25 text-sm">No students found.</div>
         ) : (
@@ -344,12 +272,7 @@ export default function StudentsPage() {
               <thead>
                 <tr className="border-b border-white/[0.06]">
                   {["Index", "Name", "Programme", "Level", "Gender", "Status", ""].map((h) => (
-                    <th
-                      key={h}
-                      className="text-left px-4 py-3 text-xs font-semibold text-white/30 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-white/30 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -360,47 +283,17 @@ export default function StudentsPage() {
                     <td className="px-4 py-3 font-medium text-white/85 text-xs">{s.full_name}</td>
                     <td className="px-4 py-3 text-white/50 text-xs">{s.programme_name}</td>
                     <td className="px-4 py-3 text-white/50 text-xs">{s.level_name}</td>
-                    <td className="px-4 py-3 text-white/40 text-xs">
-                      {s.gender === "M" ? "Male" : s.gender === "F" ? "Female" : "—"}
-                    </td>
+                    <td className="px-4 py-3 text-white/40 text-xs">{s.gender === "M" ? "Male" : s.gender === "F" ? "Female" : "—"}</td>
                     <td className="px-4 py-3">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase border",
-                        s.is_active
-                          ? "bg-teal-500/10 text-teal-400 border-teal-500/20"
-                          : "bg-white/5 text-white/25 border-white/10"
-                      )}>
+                      <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase border", s.is_active ? "bg-teal-500/10 text-teal-400 border-teal-500/20" : "bg-white/5 text-white/25 border-white/10")}>
                         {s.is_active ? "Active" : "Inactive"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* View QR Code */}
-                        <button
-                          onClick={() => setQrStudent(s)}
-                          title="View QR Code"
-                          className="p-1.5 rounded-lg text-teal-400/40 hover:text-teal-400 hover:bg-teal-500/5 transition-colors"
-                        >
-                          <QrCode className="w-3.5 h-3.5" />
-                        </button>
-                        {/* Edit */}
-                        <button
-                          onClick={() => setModal({ open: true, student: s })}
-                          title="Edit student"
-                          className="p-1.5 rounded-lg text-white/30 hover:text-white/80 hover:bg-white/5 transition-colors"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        {/* Delete */}
-                        <button
-                          onClick={() => {
-                            if (confirm(`Remove ${s.full_name}?`)) deleteMutation.mutate(s.id);
-                          }}
-                          title="Delete student"
-                          className="p-1.5 rounded-lg text-rose-400/30 hover:text-rose-400 hover:bg-rose-500/5 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <button onClick={() => setQrStudent(s)} title="View QR Code" className="p-1.5 rounded-lg text-teal-400/40 hover:text-teal-400 hover:bg-teal-500/5 transition-colors"><QrCode className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setModal({ open: true, student: s })} className="p-1.5 rounded-lg text-white/30 hover:text-white/80 hover:bg-white/5 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => { if (confirm(`Remove ${s.full_name}?`)) deleteMutation.mutate(s.id); }} className="p-1.5 rounded-lg text-rose-400/30 hover:text-rose-400 hover:bg-rose-500/5 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -414,43 +307,29 @@ export default function StudentsPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-white/30">
-            Page {page} of {totalPages} · {data?.count} total
-          </p>
+          <p className="text-xs text-white/30">Page {page} of {totalPages} · {data?.count} total</p>
           <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/80 disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/80 disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/80 disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-white/10 text-white/40 hover:text-white/80 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
           </div>
         </div>
       )}
 
-      {/* Student create/edit modal */}
+      {/* Modals */}
       {modal.open && (
-        <StudentModal
-          student={modal.student}
-          programs={programsList}
-          levels={levelsList}
-          onClose={() => setModal({ open: false, student: null })}
-        />
+        <StudentModal student={modal.student} programs={programsList} levels={levelsList} onClose={() => setModal({ open: false, student: null })} />
       )}
+      {qrStudent && <QRCodeModal student={qrStudent} onClose={() => setQrStudent(null)} />}
 
-      {/* QR Code viewer modal */}
-      {qrStudent && (
-        <QRCodeModal
-          student={qrStudent}
-          onClose={() => setQrStudent(null)}
+      {showImport && (
+        <ImportModal
+          title="Import Students"
+          description="Upload a CSV or XLSX file. Existing students will be updated by index number."
+          templateHint={["index_number", "full_name", "programme_code", "level_name", "gender"]}
+          onImport={(file) => coreApi.students.import(file)}
+          onTemplate={(fmt) => coreApi.students.template(fmt)}
+          onClose={() => setShowImport(false)}
+          onSuccess={() => qc.invalidateQueries({ queryKey: ["students"] })}
         />
       )}
     </div>

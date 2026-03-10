@@ -124,7 +124,7 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="your.username"
+                placeholder="your username"
                 required
                 autoComplete="username"
                 className="w-full h-12 px-4 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 transition-all text-sm"

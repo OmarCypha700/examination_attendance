@@ -10,7 +10,6 @@ import {
 import { formatDateTime, cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
-// ── Scan Result Card ───────────────────────────────────────────────────────────
 function ScanResultCard({ result, onDismiss }) {
   const isSuccess   = result.status === "success";
   const isDuplicate = result.status === "duplicate";
@@ -73,21 +72,17 @@ function ScanResultCard({ result, onDismiss }) {
   );
 }
 
-// ── Safe stop helper ───────────────────────────────────────────────────────────
 async function safeStop(scanner) {
   if (!scanner) return;
   try {
     const state = scanner.getState?.();
-    // Html5QrcodeScannerState: SCANNING = 2, PAUSED = 3
     if (state === 2 || state === 3) {
       await scanner.stop();
     }
   } catch {
-    // Already stopped — nothing to do
   }
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
 export default function ScanPage() {
   const [sessionId,   setSessionId]   = useState("");
   const [section,     setSection]     = useState("A");
@@ -97,16 +92,11 @@ export default function ScanPage() {
   const [tab,         setTab]         = useState("camera");
 
   const html5QrRef = useRef(null);
-
-  // ── Keep mutable values in refs so handleScan never changes ─────────────────
-  // If sessionId/section were deps of handleScan → handleScan would change →
-  // the scanner useEffect would restart → cooldown would reset → same QR code
-  // would fire duplicate toasts immediately after each successful scan.
   const sessionIdRef  = useRef(sessionId);
   const sectionRef    = useRef(section);
   const cooldown      = useRef(false);
   const lastScanned   = useRef("");
-  const mutateRef     = useRef(null); // set after useMutation below
+  const mutateRef     = useRef(null);
 
   useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
   useEffect(() => { sectionRef.current   = section;   }, [section]);
@@ -150,33 +140,25 @@ export default function ScanPage() {
     },
   });
 
-  // Keep mutateRef current without adding scanMutation to handleScan's deps
   mutateRef.current = scanMutation.mutate;
 
-  /**
-   * handleScan is intentionally stable (no deps) so the scanner useEffect
-   * never restarts mid-scan, keeping the cooldown ref intact.
-   */
   const handleScan = useCallback((decodedText) => {
     const indexNumber = decodedText.trim();
-    if (!sessionIdRef.current) return;         // no session selected
-    if (cooldown.current) return;              // within cooldown window
-    if (indexNumber === lastScanned.current) return; // exact same code again
+    if (!sessionIdRef.current) return;         
+    if (cooldown.current) return;              
+    if (indexNumber === lastScanned.current) return;
 
     cooldown.current    = true;
     lastScanned.current = indexNumber;
 
     mutateRef.current(indexNumber);
 
-    // Reset cooldown after 3 s — long enough to avoid double-fires from
-    // the camera holding the same QR in frame after a successful scan.
     setTimeout(() => {
       cooldown.current    = false;
       lastScanned.current = "";
     }, 3000);
-  }, []); // ← no deps: function is created once and never recreated
+  }, []);
 
-  // Start scanner only when `scanning` flips to true
   useEffect(() => {
     if (tab !== "camera" || !scanning) return;
 
@@ -209,7 +191,7 @@ export default function ScanPage() {
         html5QrRef.current = null;
       });
     };
-  }, [scanning, tab, handleScan]); // handleScan is now stable — effect runs once
+  }, [scanning, tab, handleScan]);
 
   const stopScanning = useCallback(async () => {
     await safeStop(html5QrRef.current);
