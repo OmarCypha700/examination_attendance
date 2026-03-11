@@ -16,6 +16,15 @@ import {
 import { formatDateTime, cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
 function ScanResultCard({ result, onDismiss }) {
   const isSuccess = result.status === "success";
   const isDuplicate = result.status === "duplicate";
@@ -103,17 +112,23 @@ function vibrate(pattern) {
 }
 
 function beep(freq = 440, duration = 100) {
+  const ctx = getAudioContext();
 
-  const ctx = new AudioContext();
   const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
 
   osc.frequency.value = freq;
-  osc.connect(ctx.destination);
+  osc.type = "sine";
+
+  gain.gain.value = 0.1;
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
   osc.start();
 
   setTimeout(() => {
     osc.stop();
-    ctx.close();
   }, duration);
 }
 
@@ -161,58 +176,57 @@ export default function ScanPage() {
   const activeSessions = sessionsData?.results ?? [];
 
   const scanMutation = useMutation({
-  mutationFn: (index_number) =>
-    coreApi.scan({
-      index_number,
-      exam_session: Number(sessionIdRef.current),
-      section: sectionRef.current,
-    }).then((r) => r.data),
+    mutationFn: (index_number) =>
+      coreApi
+        .scan({
+          index_number,
+          exam_session: Number(sessionIdRef.current),
+          section: sectionRef.current,
+        })
+        .then((r) => r.data),
 
-  onSuccess: (data) => {
-    setResult(data);
+    onSuccess: (data) => {
+      setResult(data);
 
-    if (data.status === "success") {
-      toast.success(`✓ ${data.student?.full_name}`);
+      if (data.status === "success") {
+        toast.success(`✓ ${data.student?.full_name}`);
 
-      // short success vibration
-      beep(800, 120);
-      vibrate(80);
-    }
+        // short success vibration
+        beep(800, 120);
+        vibrate(80);
+      } else if (data.status === "duplicate") {
+        toast(`Already scanned – ${data.student?.full_name}`, {
+          icon: "⚠️",
+          id: "duplicate-scan",
+        });
 
-    else if (data.status === "duplicate") {
-      toast(`Already scanned – ${data.student?.full_name}`, {
-        icon: "⚠️",
-        id: "duplicate-scan",
-      });
+        // warning vibration
+        beep(600, 120);
+        vibrate([120, 60, 120]);
+      } else if (data.status === "ineligible") {
+        toast.error(data.message ?? "Student not eligible");
 
-      // warning vibration
-      vibrate([120, 60, 120]);
-    }
+        // error vibration
+        beep(300, 300);
+        vibrate([300, 100, 300]);
+      }
+    },
 
-    else if (data.status === "ineligible") {
-      toast.error(data.message ?? "Student not eligible");
+    onError: (err) => {
+      const detail = err?.response?.data;
 
-      // error vibration
-      beep(300, 300);
-      vibrate([300, 100, 300]);
-    }
-  },
+      const msg =
+        detail?.index_number?.[0] ??
+        detail?.detail ??
+        (typeof detail === "string" ? detail : "Scan failed.");
 
-  onError: (err) => {
-    const detail = err?.response?.data;
+      toast.error(msg, { id: "scan-error" });
 
-    const msg =
-      detail?.index_number?.[0] ??
-      detail?.detail ??
-      (typeof detail === "string" ? detail : "Scan failed.");
-
-    toast.error(msg, { id: "scan-error" });
-
-    // strong error vibration
-    vibrate([300, 150, 300]);
-  },
-});
-
+      // strong error vibration
+      beep(200, 400);
+      vibrate([300, 150, 300]);
+    },
+  });
 
   mutateRef.current = scanMutation.mutate;
 
@@ -382,7 +396,10 @@ export default function ScanPage() {
         <div className="space-y-4">
           {!scanning ? (
             <button
-              onClick={() => setScanning(true)}
+              onClick={() => {
+                getAudioContext();
+                setScanning(true);
+              }}
               disabled={!ready}
               className="w-full h-14 rounded-2xl bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-navy-950 font-semibold text-sm flex items-center justify-center gap-3 transition-all shadow-[0_0_24px_rgba(45,212,191,0.2)]"
             >
