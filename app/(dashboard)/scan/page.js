@@ -102,6 +102,21 @@ function vibrate(pattern) {
   }
 }
 
+function beep(freq = 440, duration = 100) {
+
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+
+  osc.frequency.value = freq;
+  osc.connect(ctx.destination);
+  osc.start();
+
+  setTimeout(() => {
+    osc.stop();
+    ctx.close();
+  }, duration);
+}
+
 async function safeStop(scanner) {
   if (!scanner) return;
   try {
@@ -145,37 +160,6 @@ export default function ScanPage() {
   });
   const activeSessions = sessionsData?.results ?? [];
 
-  // Scan mutation
-  // const scanMutation = useMutation({
-  //   mutationFn: (index_number) =>
-  //     coreApi
-  //       .scan({
-  //         index_number,
-  //         exam_session: Number(sessionIdRef.current),
-  //         section: sectionRef.current,
-  //       })
-  //       .then((r) => r.data),
-  //   onSuccess: (data) => {
-  //     setResult(data);
-  //     if (data.status === "success") {
-  //       toast.success(`✓ ${data.student?.full_name}`);
-  //     } else {
-  //       toast(`Already scanned – ${data.student?.full_name}`, {
-  //         icon: "⚠️",
-  //         id: "duplicate-scan",
-  //       });
-  //     }
-  //   },
-  //   onError: (err) => {
-  //     const detail = err?.response?.data;
-  //     const msg =
-  //       detail?.index_number?.[0] ??
-  //       detail?.detail ??
-  //       (typeof detail === "string" ? detail : "Scan failed.");
-  //     toast.error(msg, { id: "scan-error" });
-  //   },
-  // });
-
   const scanMutation = useMutation({
   mutationFn: (index_number) =>
     coreApi.scan({
@@ -191,6 +175,7 @@ export default function ScanPage() {
       toast.success(`✓ ${data.student?.full_name}`);
 
       // short success vibration
+      beep(800, 120);
       vibrate(80);
     }
 
@@ -208,6 +193,7 @@ export default function ScanPage() {
       toast.error(data.message ?? "Student not eligible");
 
       // error vibration
+      beep(300, 300);
       vibrate([300, 100, 300]);
     }
   },
