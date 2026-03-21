@@ -191,9 +191,10 @@ export default function ScanPage() {
       if (data.status === "success") {
         toast.success(`✓ ${data.student?.full_name}`);
 
-        // short success vibration
+        // success vibration
         beep(800, 120);
         vibrate(80);
+
       } else if (data.status === "duplicate") {
         toast(`Already scanned – ${data.student?.full_name}`, {
           icon: "⚠️",
@@ -203,6 +204,7 @@ export default function ScanPage() {
         // warning vibration
         beep(600, 120);
         vibrate([120, 60, 120]);
+        
       } else if (data.status === "ineligible") {
         toast.error(data.message ?? "Student not eligible");
 

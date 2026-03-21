@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, Scan, Shield, Zap } from "lucide-react";
+import { Eye, EyeOff, Scan, Shield, Zap, ScanQrCode } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
@@ -62,10 +63,9 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-navy-950 flex overflow-hidden">
+    <div className="min-h-screen flex overflow-hidden">
       {/* ── Left panel – branding ── */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative bg-navy-900">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(45,212,191,0.08),transparent_60%)]" />
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative">
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -75,56 +75,23 @@ export default function LoginPage() {
           }}
         />
 
-        <div className="relative flex items-center gap-3 z-10">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center">
-            <Scan className="w-5 h-5 text-teal-400" />
-          </div>
-          <span className="font-bold text-xl text-white tracking-tight">
-            ExamAttend
-          </span>
-        </div>
-
         <div className="relative z-10 space-y-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-600 animate-pulse" />
               Live attendance tracking
             </div>
-
-            <h1 className="font-bold text-5xl leading-tight text-white">
-              Examination
-              <br />
-              <span className="text-teal-400">Attendance</span>
-              <br />
-              System
-            </h1>
-
-            <p className="text-white/50 text-lg leading-relaxed max-w-sm">
-              QR-powered, real-time attendance registration for Section A &amp;
-              B examinations.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {features.map(({ icon: Icon, label, desc }) => (
-              <div
-                key={label}
-                className="flex items-center gap-4 bg-white/[0.03] border border-white/[0.06] rounded-xl p-4"
-              >
-                <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4 h-4 text-teal-400" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-white">{label}</div>
-                  <div className="text-xs text-white/40">{desc}</div>
-                </div>
-              </div>
-            ))}
+            <Image
+              src="/cover.webp"
+              alt="ExamAttend Logo"
+              width={500}
+              height={500}
+            />
           </div>
         </div>
 
-        <div className="relative z-10 text-white/20 text-xs">
-          © {new Date().getFullYear()} ExamAttend. All rights reserved.
+        <div className="relative z-10 text text-xs">
+          © {new Date().getFullYear()} SacnOva. All rights reserved.
         </div>
       </div>
 
@@ -132,68 +99,68 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="flex lg:hidden items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center">
-              <Scan className="w-4 h-4 text-teal-400" />
+          <div className="flex flex-col lg:hidden items-center gap-2 mb-10">
+            <div className="flex items-center gap-5">
+              {/* <ScanQrCode className="w-30 h-30 text-cyan-800" /> */}
+              <Image
+                src="/scanova_logo.webp"
+                alt="ScanOva Logo"
+                width={150}
+                height={150}
+              />
+
+              {/* <Image
+                src="/scanova_logo.webp"
+                alt="School Logo"
+                width={150}
+                height={150}
+              /> */}
             </div>
-            <span className="font-bold text-lg text-white">ExamAttend</span>
           </div>
 
-          <div className="mb-8">
-            <h2 className="font-bold text-3xl text-white mb-2">Sign in</h2>
-            <p className="text-white/40 text-sm">
+          <div className="flex flex-col items-center mb-8">
+            <h2 className="font-bold text-3xl mb-2">Log In</h2>
+            <p className="text-sm text-muted-foreground">
               Enter your credentials to access the system.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white/60">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="your username"
-                required
-                autoComplete="username"
-                className="w-full h-12 px-4 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 transition-all text-sm"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="p-6 w-full max-w-sm">
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              required
+              className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+            />
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white/60">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={show ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  autoComplete="current-password"
-                  className="w-full h-12 px-4 pr-12 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/20 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 transition-all text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShow(!show)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-                >
-                  {show ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
+            <div className="relative mb-4">
+              <input
+                type={show ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShow(!show)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 focus:outline-none"
+              >
+                {show ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 rounded-xl bg-teal-500 hover:bg-teal-400 active:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed text-navy-950 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(45,212,191,0.25)]"
+              className="w-full h-12 rounded-xl bg-cyan-800/80 hover:bg-cyan-800 active:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-smflex items-center justify-center gap-2 shadow-[0_0_24px_rgba(45,212,191,0.25)]"
             >
               {loading ? (
                 <>

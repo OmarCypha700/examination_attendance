@@ -6,7 +6,7 @@ import { coreApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Plus, Search, Download, Eye, Play, Square,
-  Loader2, Upload, FileDown,
+  Loader2, Upload, FileDown, RotateCw
 } from "lucide-react";
 import Link from "next/link";
 import { formatDate, formatTime, attendancePct, cn } from "@/lib/utils";
@@ -62,7 +62,6 @@ export default function SessionsPage() {
     finally { setExporting(false); }
   };
 
-  // Authenticated per-session attendance export (replaces plain <a href>)
   const handleAttendanceExport = async (sessionId, fmt) => {
     try { await coreApi.sessions.exportAttendance(sessionId, fmt); }
     catch { toast.error("Export failed."); }
@@ -86,9 +85,6 @@ export default function SessionsPage() {
             <div className="flex gap-1.5">
               <button onClick={() => handleExport("xlsx")} disabled={exporting} className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40">
                 <FileDown className="w-3.5 h-3.5" /> XLSX
-              </button>
-              <button onClick={() => handleExport("csv")} disabled={exporting} className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40">
-                <FileDown className="w-3.5 h-3.5" /> CSV
               </button>
             </div>
           )}
@@ -173,9 +169,12 @@ export default function SessionsPage() {
                           {isAdmin && s.status === "active" && (
                             <button onClick={() => statusMutation.mutate({ id: s.id, s: "closed" })} disabled={statusMutation.isPending} title="Close session" className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"><Square className="w-3.5 h-3.5" /></button>
                           )}
+                          {isAdmin && s.status === "closed" && (
+                            <button onClick={() => statusMutation.mutate({ id: s.id, s: "active" })} disabled={statusMutation.isPending} title="Reactivate session" className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"><RotateCw className="w-3.5 h-3.5" /></button>
+                          )}
                           <Link href={`/sessions/${s.id}/attendance`} className="p-1.5 rounded-lg bg-white/5 text-white/50 hover:text-white/80 hover:bg-white/10 transition-colors" title="View attendance"><Eye className="w-3.5 h-3.5" /></Link>
                           {/* Authenticated attendance exports */}
-                          <button onClick={() => handleAttendanceExport(s.id, "xlsx")} className="p-1.5 rounded-lg bg-white/5 text-white/50 hover:text-white/80 hover:bg-white/10 transition-colors" title="Export XLSX"><Download className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleAttendanceExport(s.id, "pdf")} className="p-1.5 rounded-lg bg-white/5 text-white/50 hover:text-white/80 hover:bg-white/10 transition-colors" title="Export PDF"><Download className="w-3.5 h-3.5" /></button>
                         </div>
                       </td>
                     </tr>

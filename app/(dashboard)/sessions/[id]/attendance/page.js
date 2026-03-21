@@ -101,17 +101,17 @@ export default function AttendancePage() {
 
           {/* Authenticated export buttons */}
           <div className="flex gap-2 flex-wrap">
-            <button
+            {/* <button
               onClick={() => handleExport("csv")}
               className="flex items-center gap-2 px-3 h-9 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 hover:text-white/90 hover:bg-white/[0.08] text-xs font-medium transition-all"
             >
               <Download className="w-3.5 h-3.5" /> CSV
-            </button>
+            </button> */}
             <button
-              onClick={() => handleExport("xlsx")}
+              onClick={() => handleExport("pdf")}
               className="flex items-center gap-2 px-3 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-xs font-medium transition-all"
             >
-              <Download className="w-3.5 h-3.5" /> XLSX
+              <Download className="w-3.5 h-3.5" /> PDF
             </button>
           </div>
         </div>

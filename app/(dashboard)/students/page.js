@@ -217,13 +217,6 @@ export default function StudentsPage() {
             >
               <FileDown className="w-3.5 h-3.5" /> XLSX
             </button>
-            <button
-              onClick={() => handleExport("csv")}
-              disabled={exporting}
-              className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40"
-            >
-              <FileDown className="w-3.5 h-3.5" /> CSV
-            </button>
           </div>
 
           {/* Import */}

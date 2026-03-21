@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -15,6 +16,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  ScanQrCode,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -66,7 +68,7 @@ const NAV = [
   {
     href:  "/program",
     icon:  NotebookTabs,
-    label: "Program",
+    label: "Programs",
     roles: ["admin"],
   },
 ];
@@ -83,8 +85,8 @@ function NavItem({ href, icon: Icon, label, active }) {
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
         active
-          ? "bg-teal-500/10 text-teal-400 border border-teal-500/20"
-          : "text-white/45 hover:text-white/80 hover:bg-white/5"
+          ? "bg-black text-white border"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
@@ -102,15 +104,15 @@ export function Sidebar() {
   const allowed = NAV.filter((n) => user && n.roles.includes(user.role));
 
   const sidebarContent = (
-    <aside className="w-64 min-h-screen flex flex-col bg-navy-900 border-r border-white/[0.05]">
+    <aside className="w-64 min-h-screen flex flex-col bg-white border-r border-white/[0.05]">
       {/* Logo */}
-      <div className="h-16 px-5 flex items-center justify-between border-b border-white/[0.05]">
+      <div className="h-16 px-5 flex items-center justify-between border-b border-black/10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/25 flex items-center justify-center">
-            <Scan className="w-4 h-4 text-teal-400" />
-          </div>
-          <span className="font-display font-bold text-white text-base tracking-tight">
-            ExamAttend
+          {/* <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/25 flex items-center justify-center"> */}
+              <ScanQrCode className="w-8 h-8 text-cyan-800" />
+          {/* </div> */}
+          <span className="font-display font-bold text-base tracking-tight">
+            ScanOva
           </span>
         </div>
         <button
@@ -136,6 +138,15 @@ export function Sidebar() {
 
       {/* User + logout */}
       <div className="p-3 border-t border-white/[0.05] space-y-1">
+
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-400/60 hover:text-rose-400 hover:bg-rose-500/5 transition-all duration-150"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Sign out</span>
+        </button>
+
         <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
           <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
             <span className="uppercase text-xs font-bold text-teal-400">
@@ -156,14 +167,7 @@ export function Sidebar() {
             </span>
           </div>
         </div>
-
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-400/60 hover:text-rose-400 hover:bg-rose-500/5 transition-all duration-150"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Sign out</span>
-        </button>
+        
       </div>
     </aside>
   );
