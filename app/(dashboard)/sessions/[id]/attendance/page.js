@@ -1,326 +1,3 @@
-// "use client";
-
-// import { useState } from "react";
-// import { useParams, useRouter } from "next/navigation";
-// import { useQuery } from "@tanstack/react-query";
-// import { coreApi } from "@/lib/api";
-// import { useAuth } from "@/hooks/useAuth";
-// import {
-//   ArrowLeft,
-//   Download,
-//   Search,
-//   Loader2,
-//   CheckCircle2,
-//   AlertTriangle,
-//   XCircle,
-//   Users,
-// } from "lucide-react";
-// import Link from "next/link";
-// import { formatDate, formatTime, formatDateTime, cn } from "@/lib/utils";
-// import toast from "react-hot-toast";
-
-// const SECTION_FILTERS = ["all", "A", "B"];
-// const STATUS_FILTERS = ["all", "present", "duplicate", "invalid"];
-
-// function StatusBadge({ status }) {
-//   const map = {
-//     present: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-//     duplicate: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-//     invalid: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-//   };
-//   const Icon =
-//     { present: CheckCircle2, duplicate: AlertTriangle, invalid: XCircle }[
-//       status
-//     ] ?? CheckCircle2;
-//   return (
-//     <span
-//       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold uppercase ${map[status] ?? map.present}`}
-//     >
-//       <Icon className="w-2.5 h-2.5" />
-//       {status}
-//     </span>
-//   );
-// }
-
-// function SummaryCard({ label, value, color }) {
-//   return (
-//     <div className="bg-card border border-border rounded-lg p-4 text-center">
-//       <p className={`font-bold text-2xl ${color}`}>{value}</p>
-//       <p className="text-muted-foreground text-xs mt-1">{label}</p>
-//     </div>
-//   );
-// }
-
-// export default function AttendancePage() {
-//   const { id } = useParams();
-//   const router = useRouter();
-
-//   const [section, setSection] = useState("all");
-//   const [statusFilt, setStatusFilt] = useState("all");
-//   const [search, setSearch] = useState("");
-
-//   const { data: session } = useQuery({
-//     queryKey: ["session", id],
-//     queryFn: () => coreApi.sessions.get(id).then((r) => r.data),
-//   });
-
-//   const attendanceParams = {};
-//   if (section !== "all") attendanceParams.section = section;
-//   if (statusFilt !== "all") attendanceParams.status = statusFilt;
-//   if (search) attendanceParams.search = search;
-
-//   const { data: attendanceData, isLoading } = useQuery({
-//     queryKey: ["attendance", id, attendanceParams],
-//     queryFn: () =>
-//       coreApi.sessions.attendance(id, attendanceParams).then((r) => r.data),
-//     refetchInterval: session?.status === "active" ? 10_000 : false,
-//   });
-
-//   const records = attendanceData?.results ?? [];
-//   const summary = session?.attendance_summary;
-
-//   // Authenticated exports — token sent via axios interceptor
-//   const handleExport = async (fmt, sectionFilter = "") => {
-//     try {
-//       await coreApi.sessions.exportAttendance(id, fmt, sectionFilter);
-//     } catch {
-//       toast.error("Export failed. Please try again.");
-//     }
-//   };
-
-//   return (
-//     <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
-//       {/* Back + Header */}
-//       <div>
-//         <button
-//           onClick={() => router.back()}
-//           className="flex items-center gap-2 text-primary hover:text-muted-foreground text-sm mb-4 transition-colors"
-//         >
-//           <ArrowLeft className="w-4 h-4" /> Back to sessions
-//         </button>
-
-//         <div className="flex items-start justify-between gap-4">
-//           <div>
-//             <div className="flex items-center gap-3 mb-1">
-//               <h1 className="font-bold text-2xl text-foreground">
-//                 {session?.course_code ?? "—"}
-//               </h1>
-//               {session && (
-//                 <span
-//                   className={cn(
-//                     "px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase",
-//                     session.status === "active"
-//                       ? "bg-teal-500/10 text-teal-400 border-teal-500/20"
-//                       : session.status === "scheduled"
-//                         ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-//                         : "bg-primary text-muted border-border",
-//                   )}
-//                 >
-//                   {session.status}
-//                 </span>
-//               )}
-//             </div>
-//             <p className="text-muted-foreground text-sm">{session?.course_title}</p>
-//             <p className="text-muted-foreground text-xs mt-1">
-//               {session?.programme_name} · {session?.level_name} ·{" "}
-//               {formatDate(session?.date)}
-//               {session?.start_time
-//                 ? ` · ${formatTime(session.start_time)}`
-//                 : ""}
-//             </p>
-//           </div>
-
-//           {/* Authenticated export buttons */}
-//           <div className="flex gap-2 flex-wrap">
-//             {/* <button
-//               onClick={() => handleExport("csv")}
-//               className="flex items-center gap-2 px-3 h-9 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 hover:text-white/90 hover:bg-white/[0.08] text-xs font-medium transition-all"
-//             >
-//               <Download className="w-3.5 h-3.5" /> CSV
-//             </button> */}
-//             <button
-//               onClick={() => handleExport("pdf")}
-//               className="flex items-center gap-2 px-3 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-xs font-medium transition-all"
-//             >
-//               <Download className="w-3.5 h-3.5" /> PDF
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Summary */}
-//       {summary && (
-//         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-//           <SummaryCard label="Total" value={summary.total} color="text-primary" />
-//           <SummaryCard
-//             label="Section A"
-//             value={summary.section_a}
-//             color="text-sky-400"
-//           />
-//           <SummaryCard
-//             label="Section B"
-//             value={summary.section_b}
-//             color="text-violet-400"
-//           />
-//           <SummaryCard
-//             label="Present"
-//             value={summary.present}
-//             color="text-teal-400"
-//           />
-//           <SummaryCard
-//             label="Duplicate"
-//             value={summary.duplicate}
-//             color="text-amber-400"
-//           />
-//           <SummaryCard
-//             label="Invalid"
-//             value={summary.invalid}
-//             color="text-rose-400"
-//           />
-//         </div>
-//       )}
-
-//       {/* Filters */}
-//       <div className="flex flex-wrap gap-3">
-//         <div className="relative flex-1 min-w-48 max-w-xs">
-//           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-//           <input
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             placeholder="Search name or index…"
-//             className="w-full h-9 pl-9 pr-4 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-//           />
-//         </div>
-//         <div className="flex gap-1 bg-muted/50 border border-border rounded-lg p-1">
-//           {SECTION_FILTERS.map((f) => (
-//             <button
-//               key={f}
-//               onClick={() => setSection(f)}
-//               className={cn(
-//                 "px-3 h-7 rounded-md text-xs font-medium capitalize transition-all duration-150",
-//                 section === f
-//                  ? "bg-background text-foreground shadow-sm border border-border"
-//                   : "text-muted-foreground hover:text-foreground",
-//               )}
-//             >
-//               {f === "all" ? "All" : `Sec. ${f}`}
-//             </button>
-//           ))}
-//         </div>
-//         <div className="flex gap-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-1">
-//           {STATUS_FILTERS.map((f) => (
-//             <button
-//               key={f}
-//               onClick={() => setStatusFilt(f)}
-//               className={cn(
-//                 "px-3 h-7 rounded-md text-xs font-medium capitalize transition-all duration-150",
-//                 statusFilt === f
-//                   ? "bg-background text-foreground shadow-sm border border-border"
-//                   : "text-muted-foreground hover:text-foreground",
-//               )}
-//             >
-//               {f}
-//             </button>
-//           ))}
-//         </div>
-//       </div>
-
-//       {/* Table */}
-//       <div className="bg-card border border-border rounded-xl overflow-hidden">
-//         {isLoading ? (
-//           <div className="flex items-center justify-center py-16">
-//             <Loader2 className="w-6 h-6 text-primary animate-spin" />
-//           </div>
-//         ) : records.length === 0 ? (
-//           <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
-//             <Users className="w-8 h-8 opacity-30" />
-//             <p className="text-sm">No attendance records yet.</p>
-//           </div>
-//         ) : (
-//           <div className="overflow-x-auto">
-//             <table className="w-full text-sm">
-//               <thead>
-//                 <tr className="border-b border-border">
-//                   {[
-//                     "#",
-//                     "Index",
-//                     "Name",
-//                     "Programme",
-//                     "Section",
-//                     "Scan Time",
-//                     "Status",
-//                     "Scanned By",
-//                   ].map((h) => (
-//                     <th
-//                       key={h}
-//                       className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap"
-//                     >
-//                       {h}
-//                     </th>
-//                   ))}
-//                 </tr>
-//               </thead>
-//               <tbody className="divide-y divide-border">
-//                 {records.map((r, i) => (
-//                   <tr
-//                     key={r.id}
-//                     className="hover:bg-accent/40 transition-colors"
-//                   >
-//                     <td className="px-4 py-3 font-mono text-foreground text-xs">
-//                       {i + 1}
-//                     </td>
-//                     <td className="px-4 py-3 font-mono text-foreground text-xs">
-//                       {r.index_number}
-//                     </td>
-//                     <td className="px-4 py-3 text-foreground text-xs">
-//                       {r.student_name}
-//                     </td>
-//                     <td className="px-4 py-3 text-foreground text-xs">
-//                       {r.student_programme_name ?? "—"}
-//                     </td>
-//                     <td className="px-4 py-3">
-//                       <span
-//                         className={cn(
-//                           "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase",
-//                           r.section === "A"
-//                             ? "bg-sky-500/10 text-sky-400"
-//                             : "bg-violet-500/10 text-violet-400",
-//                         )}
-//                       >
-//                         Sec. {r.section}
-//                       </span>
-//                     </td>
-//                     <td className="px-4 py-3 text-foreground text-xs whitespace-nowrap">
-//                       {formatDateTime(r.scan_time)}
-//                     </td>
-//                     <td className="px-4 py-3">
-//                       <StatusBadge status={r.status} />
-//                     </td>
-//                     <td className="px-4 py-3 text-foreground text-xs">
-//                       {r.scanned_by_username}
-//                     </td>
-//                   </tr>
-//                 ))}
-//               </tbody>
-//             </table>
-//           </div>
-//         )}
-//       </div>
-
-//       {attendanceData?.count > records.length && (
-//         <p className="text-center text-foreground text-xs">
-//           Showing {records.length} of {attendanceData.count} records.
-//         </p>
-//       )}
-//     </div>
-//   );
-// }
-
-
-
-
-
-
 "use client";
 
 import { useState } from "react";
@@ -345,13 +22,24 @@ const STATUS_FILTERS = ["all", "present", "duplicate", "invalid"];
 
 function StatusBadge({ status }) {
   const map = {
-    present:   "bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20",
-    duplicate: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20",
-    invalid:   "bg-red-50 dark:bg-rose-500/10 text-red-700 dark:text-rose-400 border-red-200 dark:border-rose-500/20",
+    present:
+      "bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20",
+    duplicate:
+      "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20",
+    invalid:
+      "bg-red-50 dark:bg-rose-500/10 text-red-700 dark:text-rose-400 border-red-200 dark:border-rose-500/20",
   };
-  const Icon = { present: CheckCircle2, duplicate: AlertTriangle, invalid: XCircle }[status] ?? CheckCircle2;
+  const Icon =
+    { present: CheckCircle2, duplicate: AlertTriangle, invalid: XCircle }[
+      status
+    ] ?? CheckCircle2;
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold uppercase", map[status] ?? map.present)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold uppercase",
+        map[status] ?? map.present,
+      )}
+    >
       <Icon className="w-2.5 h-2.5" />
       {status}
     </span>
@@ -371,23 +59,24 @@ export default function AttendancePage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [section,    setSection]    = useState("all");
+  const [section, setSection] = useState("all");
   const [statusFilt, setStatusFilt] = useState("all");
-  const [search,     setSearch]     = useState("");
+  const [search, setSearch] = useState("");
 
   const { data: session } = useQuery({
     queryKey: ["session", id],
-    queryFn:  () => coreApi.sessions.get(id).then((r) => r.data),
+    queryFn: () => coreApi.sessions.get(id).then((r) => r.data),
   });
 
   const attendanceParams = {};
-  if (section !== "all")    attendanceParams.section = section;
-  if (statusFilt !== "all") attendanceParams.status  = statusFilt;
-  if (search)               attendanceParams.search  = search;
+  if (section !== "all") attendanceParams.section = section;
+  if (statusFilt !== "all") attendanceParams.status = statusFilt;
+  if (search) attendanceParams.search = search;
 
   const { data: attendanceData, isLoading } = useQuery({
-    queryKey:        ["attendance", id, attendanceParams],
-    queryFn:         () => coreApi.sessions.attendance(id, attendanceParams).then((r) => r.data),
+    queryKey: ["attendance", id, attendanceParams],
+    queryFn: () =>
+      coreApi.sessions.attendance(id, attendanceParams).then((r) => r.data),
     refetchInterval: session?.status === "active" ? 10_000 : false,
   });
 
@@ -409,11 +98,11 @@ export default function AttendancePage() {
   };
 
   // Human-readable label for the export button
-  const exportLabel = section === "all" ? "Export PDF" : `Export Section ${section}`;
+  const exportLabel =
+    section === "all" ? "Export PDF" : `Export Section ${section}`;
 
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
-
       {/* Back + Header */}
       <div>
         <button
@@ -430,22 +119,29 @@ export default function AttendancePage() {
                 {session?.course_code ?? "—"}
               </h1>
               {session && (
-                <span className={cn(
-                  "px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase",
-                  session.status === "active"
-                    ? "bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20"
-                    : session.status === "scheduled"
-                    ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
-                    : "bg-muted text-muted-foreground border-border",
-                )}>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase",
+                    session.status === "active"
+                      ? "bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20"
+                      : session.status === "scheduled"
+                        ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
+                        : "bg-muted text-muted-foreground border-border",
+                  )}
+                >
                   {session.status}
                 </span>
               )}
             </div>
-            <p className="text-muted-foreground text-sm">{session?.course_title}</p>
+            <p className="text-muted-foreground text-sm">
+              {session?.course_title}
+            </p>
             <p className="text-muted-foreground text-xs mt-1">
-              {session?.programme_name} · {session?.level_name} · {formatDate(session?.date)}
-              {session?.start_time ? ` · ${formatTime(session.start_time)}` : ""}
+              {session?.programme_name} · {session?.level_name} ·{" "}
+              {formatDate(session?.date)}
+              {session?.start_time
+                ? ` · ${formatTime(session.start_time)}`
+                : ""}
             </p>
           </div>
 
@@ -454,7 +150,7 @@ export default function AttendancePage() {
             onClick={handleExport}
             className={cn(
               "flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium transition-all",
-              "bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20"
+              "bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20",
             )}
           >
             <Download className="w-3.5 h-3.5" />
@@ -466,12 +162,36 @@ export default function AttendancePage() {
       {/* Summary cards */}
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-          <SummaryCard label="Total"     value={summary.total}     color="text-foreground" />
-          <SummaryCard label="Section A" value={summary.section_a} color="text-sky-500 dark:text-sky-400" />
-          <SummaryCard label="Section B" value={summary.section_b} color="text-violet-500 dark:text-violet-400" />
-          <SummaryCard label="Present"   value={summary.present}   color="text-teal-600 dark:text-teal-400" />
-          <SummaryCard label="Duplicate" value={summary.duplicate} color="text-amber-600 dark:text-amber-400" />
-          <SummaryCard label="Invalid"   value={summary.invalid}   color="text-red-600 dark:text-rose-400" />
+          <SummaryCard
+            label="Total"
+            value={summary.total}
+            color="text-foreground"
+          />
+          <SummaryCard
+            label="Section A"
+            value={summary.section_a}
+            color="text-sky-500 dark:text-sky-400"
+          />
+          <SummaryCard
+            label="Section B"
+            value={summary.section_b}
+            color="text-violet-500 dark:text-violet-400"
+          />
+          <SummaryCard
+            label="Present"
+            value={summary.present}
+            color="text-teal-600 dark:text-teal-400"
+          />
+          <SummaryCard
+            label="Duplicate"
+            value={summary.duplicate}
+            color="text-amber-600 dark:text-amber-400"
+          />
+          <SummaryCard
+            label="Invalid"
+            value={summary.invalid}
+            color="text-red-600 dark:text-rose-400"
+          />
         </div>
       )}
 
@@ -554,8 +274,20 @@ export default function AttendancePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["#", "Index", "Name", "Programme", "Section", "Scan Time", "Status", "Scanned By"].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                  {[
+                    "#",
+                    "Index",
+                    "Name",
+                    "Programme",
+                    "Section",
+                    "Scan Time",
+                    "Status",
+                    "Scanned By",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap"
+                    >
                       {h}
                     </th>
                   ))}
@@ -563,24 +295,43 @@ export default function AttendancePage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {records.map((r, i) => (
-                  <tr key={r.id} className="hover:bg-accent/40 transition-colors">
-                    <td className="px-4 py-3 text-muted-foreground text-xs font-mono">{i + 1}</td>
-                    <td className="px-4 py-3 font-mono text-primary text-xs">{r.index_number}</td>
-                    <td className="px-4 py-3 text-foreground text-xs font-medium">{r.student_name}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{r.student_programme_name ?? "—"}</td>
+                  <tr
+                    key={r.id}
+                    className="hover:bg-accent/40 transition-colors"
+                  >
+                    <td className="px-4 py-3 text-muted-foreground text-xs font-mono">
+                      {i + 1}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-primary text-xs">
+                      {r.index_number}
+                    </td>
+                    <td className="px-4 py-3 text-foreground text-xs font-medium">
+                      {r.student_name}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">
+                      {r.student_programme_name ?? "—"}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase",
-                        r.section === "A"
-                          ? "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                          : "bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400",
-                      )}>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase",
+                          r.section === "A"
+                            ? "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                            : "bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400",
+                        )}
+                      >
                         Sec. {r.section}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{formatDateTime(r.scan_time)}</td>
-                    <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{r.scanned_by_username}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
+                      {formatDateTime(r.scan_time)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={r.status} />
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">
+                      {r.scanned_by_username}
+                    </td>
                   </tr>
                 ))}
               </tbody>
