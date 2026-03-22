@@ -257,7 +257,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">

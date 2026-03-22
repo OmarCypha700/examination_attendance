@@ -222,7 +222,7 @@ export default function CoursesPage() {
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Courses</h1>
           <p className="text-muted-foreground text-sm">
@@ -302,7 +302,7 @@ export default function CoursesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
@@ -312,63 +312,65 @@ export default function CoursesPage() {
             No courses found.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                {["Code", "Title", "Programme", "Level", ""].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-xs text-foreground uppercase"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-border">
-              {courses.map((c) => (
-                <tr key={c.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 font-mono text-primary text-xs">
-                    {c.course_code}
-                  </td>
-
-                  <td className="px-4 py-3 text-foreground text-xs">
-                    {c.course_title}
-                  </td>
-
-                  <td className="px-4 py-3 text-foreground text-xs">
-                    {c.programme_name}
-                  </td>
-
-                  <td className="px-4 py-3 text-foreground text-xs">
-                    {c.level_name}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => setModal({ open: true, course: c })}
-                        className="p-1.5 text-foreground hover:text-muted-foreground"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          if (confirm(`Delete ${c.course_code}?`))
-                            deleteMutation.mutate(c.id);
-                        }}
-                        className="p-1.5 text-rose-400 hover:text-rose-400/40"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  {["Code", "Title", "Programme", "Level", ""].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left px-4 py-3 text-xs text-foreground uppercase"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody className="divide-y divide-border">
+                {courses.map((c) => (
+                  <tr key={c.id} className="hover:bg-white/[0.02]">
+                    <td className="px-4 py-3 font-mono text-primary text-xs">
+                      {c.course_code}
+                    </td>
+
+                    <td className="px-4 py-3 text-foreground text-xs">
+                      {c.course_title}
+                    </td>
+
+                    <td className="px-4 py-3 text-foreground text-xs">
+                      {c.programme_name}
+                    </td>
+
+                    <td className="px-4 py-3 text-foreground text-xs">
+                      {c.level_name}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setModal({ open: true, course: c })}
+                          className="p-1.5 text-foreground hover:text-muted-foreground"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete ${c.course_code}?`))
+                              deleteMutation.mutate(c.id);
+                          }}
+                          className="p-1.5 text-rose-400 hover:text-rose-400/40"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

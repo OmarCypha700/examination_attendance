@@ -37,8 +37,8 @@ function ScanResultCard({ result, onDismiss }) {
   return (
     <div
       className={cn(
-        "rounded-2xl border p-5 animate-fade-up",
-        isSuccess && "bg-teal-500/5 border-teal-500/25",
+        "rounded-lg border p-5 animate-fade-up",
+        isSuccess && "bg-primary border-border",
         isDuplicate && "bg-amber-500/5 border-amber-500/25",
       )}
     >
@@ -65,7 +65,7 @@ function ScanResultCard({ result, onDismiss }) {
             >
               {isSuccess ? "Recorded" : "Duplicate Scan"}
             </span>
-            <span className="text-white/30 text-xs">
+            <span className="text-foreground text-xs">
               Section {result.attendance?.section}
             </span>
           </div>
@@ -73,11 +73,11 @@ function ScanResultCard({ result, onDismiss }) {
           <p className="font-semibold text-white">
             {result.student?.full_name}
           </p>
-          <p className="text-white/50 text-sm font-mono">
+          <p className="text-foreground text-sm font-mono">
             {result.student?.index_number}
           </p>
 
-          <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-white/35">
+          <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-foreground">
             <span>{result.student?.programme_name}</span>
             {result.student?.level_name && (
               <>
@@ -96,7 +96,7 @@ function ScanResultCard({ result, onDismiss }) {
 
         <button
           onClick={onDismiss}
-          className="text-white/20 hover:text-white/50 transition-colors"
+          className="text-foreground hover:text-foreground/50 transition-colors"
         >
           <XCircle className="w-4 h-4" />
         </button>
@@ -475,7 +475,7 @@ export default function ScanPage() {
 
       {/* Status indicator */}
       {ready && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+        <div className="flex items-center gap-2 text-xs text-foreground justify-center">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           Scanning Section {section} ·{" "}
           {activeSessions.find((s) => String(s.id) === String(sessionId))
