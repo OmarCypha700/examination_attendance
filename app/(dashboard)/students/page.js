@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { coreApi, getQRCodeUrl } from "@/lib/api";
 import {
@@ -58,7 +59,7 @@ function QRCodeModal({ student, onClose }) {
         </div>
         <div className="p-6 flex flex-col items-center gap-4">
           <div className="bg-white p-3 rounded-2xl shadow-lg">
-            <img
+            <Image
               src={qrUrl}
               alt={`QR for ${student.index_number}`}
               width={200}
