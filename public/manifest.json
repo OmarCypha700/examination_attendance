@@ -1,6 +1,9 @@
 {
   "name": "ScanOva",
   "short_name": "ScanOva",
+  "start_url": "/",
+  "scope": "/",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
