@@ -2,7 +2,7 @@
   "name": "ScanOva",
   "short_name": "ScanOva",
   "description": "QR code powered examination attendance tracking",
-  "start_url": "/",
+  "start_url": "/login",
   "scope": "/",
   "orientation": "portrait",
   "icons": [
