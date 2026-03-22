@@ -5,7 +5,7 @@ import PWARegister from "@/components/PWARegister";
 
 export const metadata = {
   title: "ScanOva – Examination Attendance System",
-  description: "QR-powered exam attendance tracking",
+  description: "QR code powered examination attendance tracking",
   manifest: "/manifest.json",
 };
 <meta name="apple-mobile-web-app-title" content="ScanOva" />;
