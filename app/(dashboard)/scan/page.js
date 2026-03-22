@@ -194,7 +194,6 @@ export default function ScanPage() {
         // success vibration
         beep(800, 120);
         vibrate(80);
-
       } else if (data.status === "duplicate") {
         toast(`Already scanned – ${data.student?.full_name}`, {
           icon: "⚠️",
@@ -204,7 +203,6 @@ export default function ScanPage() {
         // warning vibration
         beep(600, 120);
         vibrate([120, 60, 120]);
-        
       } else if (data.status === "ineligible") {
         toast.error(data.message ?? "Student not eligible");
 
@@ -304,23 +302,23 @@ export default function ScanPage() {
     <div className="p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-bold text-3xl text-white">QR Scanner</h1>
-        <p className="text-white/40 text-sm mt-1">
+        <h1 className="font-bold text-3xl text-foreground">QR Scanner</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Select a session and section, then scan a student's QR code.
         </p>
       </div>
 
       {/* Session + Section selectors */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 space-y-4">
+      <div className="bg-card border border-b border-border rounded-2xl p-5 space-y-4">
         <div className="space-y-2">
-          <label className="text-xs font-medium text-white/50">
+          <label className="text-xs font-medium text-muted-foreground">
             Exam Session *
           </label>
           <div className="relative">
             <select
               value={sessionId}
               onChange={(e) => setSessionId(e.target.value)}
-              className="w-full h-11 px-4 pr-10 rounded-xl bg-navy-800 border border-white/10 text-white text-sm focus:outline-none focus:border-teal-500/40 appearance-none"
+              className="w-full h-11 px-4 pr-10 rounded-xl bg-background border border-input text-muted-foreground text-sm focus:outline-none focus:border-teal-500/40 appearance-none"
             >
               <option value="">
                 {activeSessions.length === 0
@@ -333,22 +331,24 @@ export default function ScanPage() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-white/50">Section</label>
+          <label className="text-xs font-medium text-muted-foreground">
+            Section
+          </label>
           <div className="flex gap-2">
             {["A", "B"].map((s) => (
               <button
                 key={s}
                 onClick={() => setSection(s)}
                 className={cn(
-                  "flex-1 h-11 rounded-xl border text-sm font-semibold transition-all",
+                  "flex-1 h-11 rounded-lg border text-sm font-semibold transition-all",
                   section === s
-                    ? "bg-teal-500/10 text-teal-400 border-teal-500/30"
-                    : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20",
+                    ? "bg-primary/10 text-primary border-teal-primary/30"
+                    : "border-border text-foreground hover:text-muted-foreground hover:border-foreground",
                 )}
               >
                 Section {s}
@@ -362,7 +362,7 @@ export default function ScanPage() {
       </div>
 
       {/* Tab selector */}
-      <div className="flex gap-2 bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
+      <div className="flex gap-2 bg-card border border-border rounded-lg p-1">
         <button
           onClick={() => {
             stopScanning();
@@ -371,8 +371,8 @@ export default function ScanPage() {
           className={cn(
             "flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-medium transition-all",
             tab === "camera"
-              ? "bg-white/[0.06] text-white"
-              : "text-white/40 hover:text-white/70",
+              ? "bg-primary text-foreground"
+              : "text-primary hover:text-foreground",
           )}
         >
           <Camera className="w-4 h-4" /> Camera
@@ -385,8 +385,8 @@ export default function ScanPage() {
           className={cn(
             "flex-1 flex items-center justify-center gap-2 h-9 rounded-lg text-sm font-medium transition-all",
             tab === "manual"
-              ? "bg-white/[0.06] text-white"
-              : "text-white/40 hover:text-white/70",
+              ? "bg-primary text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           <Keyboard className="w-4 h-4" /> Manual
@@ -443,7 +443,7 @@ export default function ScanPage() {
       {tab === "manual" && (
         <form onSubmit={handleManualSubmit} className="space-y-3">
           <div className="space-y-2">
-            <label className="text-xs font-medium text-white/50">
+            <label className="text-xs font-medium text-muted-foreground">
               Student Index Number
             </label>
             <input
@@ -451,16 +451,16 @@ export default function ScanPage() {
               onChange={(e) => setManualIndex(e.target.value)}
               placeholder="Enter student index number…"
               autoFocus
-              className="w-full h-12 px-4 rounded-xl bg-navy-800 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 font-mono"
+              className="w-full h-9 px-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:border-teal-500/40 font-mono"
             />
-            <p className="text-xs text-white/25">
+            <p className="text-xs text-muted-foreground">
               This is the same value encoded in the student's QR code.
             </p>
           </div>
           <button
             type="submit"
             disabled={!ready || !manualIndex.trim() || scanMutation.isPending}
-            className="w-full h-12 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+            className="w-full h-12 rounded-lg bg-primary hover:bg-muted/50 disabled:opacity-40 disabled:cursor-not-allowed text-foreground font-semibold text-sm flex items-center justify-center gap-2 transition-all"
           >
             <Scan className="w-4 h-4" />
             {scanMutation.isPending ? "Recording…" : "Record Attendance"}
@@ -475,8 +475,8 @@ export default function ScanPage() {
 
       {/* Status indicator */}
       {ready && (
-        <div className="flex items-center gap-2 text-xs text-white/25 justify-center">
-          <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           Scanning Section {section} ·{" "}
           {activeSessions.find((s) => String(s.id) === String(sessionId))
             ?.course_code ?? ""}

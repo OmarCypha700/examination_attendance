@@ -18,9 +18,8 @@ import {
 import toast from "react-hot-toast";
 import { ImportModal } from "@/components/ImportModal";
 
-
 const inputCls =
-  "w-full h-10 px-3 rounded-xl bg-navy-950 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
+  "w-full h-10 px-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-p/40 transition-colors";
 
 // ── Course Modal ─────────────────────────────────────────
 function CourseModal({ course, programs, levels, onClose }) {
@@ -62,21 +61,21 @@ function CourseModal({ course, programs, levels, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <h2 className="font-bold text-lg text-white">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <h2 className="font-bold text-lg text-foreground">
             {course ? "Edit Course" : "Add Course"}
           </h2>
 
           <button onClick={onClose}>
-            <X className="w-5 h-5 text-white/30 hover:text-white/70" />
+            <X className="w-5 h-5 text-foreground hover:text-muted-foreground" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs text-white/40">Course Code *</label>
+            <label className="text-xs text-foreground">Course Code *</label>
             <input
               required
               value={form.course_code}
@@ -87,7 +86,7 @@ function CourseModal({ course, programs, levels, onClose }) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs text-white/40">Course Title *</label>
+            <label className="text-xs text-foreground">Course Title *</label>
             <input
               required
               value={form.course_title}
@@ -99,7 +98,7 @@ function CourseModal({ course, programs, levels, onClose }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs text-white/40">Programme *</label>
+              <label className="text-xs text-foreground">Programme *</label>
               <select
                 required
                 value={form.programme}
@@ -116,7 +115,7 @@ function CourseModal({ course, programs, levels, onClose }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs text-white/40">Level *</label>
+              <label className="text-xs text-foreground">Level *</label>
               <select
                 required
                 value={form.level}
@@ -137,7 +136,7 @@ function CourseModal({ course, programs, levels, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm"
+              className="flex-1 h-10 rounded-lg border border-border text-foreground hover:text-muted-foreground text-sm"
             >
               Cancel
             </button>
@@ -145,7 +144,7 @@ function CourseModal({ course, programs, levels, onClose }) {
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2"
+              className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/80 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2"
             >
               {mutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -225,8 +224,10 @@ export default function CoursesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Courses</h1>
-          <p className="text-white/40 text-sm">{data?.count ?? 0} courses</p>
+          <h1 className="text-3xl font-bold text-foreground">Courses</h1>
+          <p className="text-muted-foreground text-sm">
+            {data?.count ?? 0} courses
+          </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -235,7 +236,7 @@ export default function CoursesPage() {
             <button
               onClick={() => handleExport("xlsx")}
               disabled={exporting}
-              className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40"
+              className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-border text-foreground hover:text-muted-foreground hover:bg-muted/50 text-xs font-medium transition-all disabled:opacity-40"
             >
               <FileDown className="w-3.5 h-3.5" /> XLSX
             </button>
@@ -244,14 +245,14 @@ export default function CoursesPage() {
           {/* Import */}
           <button
             onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-teal-500/25 bg-teal-500/5 text-teal-400 hover:bg-teal-500/10 text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-primary/25 bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium transition-all"
           >
             <Upload className="w-3.5 h-3.5" /> Import
           </button>
 
           <button
             onClick={() => setModal({ open: true, course: null })}
-            className="flex items-center gap-2 px-4 h-9 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm"
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-primary hover:bg-primary/80 text-primary-foreground font-semibold text-sm"
           >
             <Plus className="w-4 h-4" /> Add Course
           </button>
@@ -261,7 +262,7 @@ export default function CoursesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
           <input
             value={search}
             onChange={(e) => {
@@ -269,14 +270,14 @@ export default function CoursesPage() {
               setPage(1);
             }}
             placeholder="Search course..."
-            className="w-full h-10 pl-9 rounded-xl bg-navy-800 border border-white/10 text-white text-sm"
+            className="w-full h-10 pl-9 rounded-lg border border-border text-foreground text-sm"
           />
         </div>
 
         <select
           value={programme}
           onChange={(e) => setProgramme(e.target.value)}
-          className="h-10 px-3 rounded-xl bg-navy-800 border border-white/10 text-white/70 text-sm"
+          className="h-10 px-3 rounded-lg border border-border text-foreground text-sm"
         >
           <option value="">All Programmes</option>
           {programs?.map((p) => (
@@ -289,7 +290,7 @@ export default function CoursesPage() {
         <select
           value={level}
           onChange={(e) => setLevel(e.target.value)}
-          className="h-10 px-3 rounded-xl bg-navy-800 border border-white/10 text-white/70 text-sm"
+          className="h-10 px-3 rounded-lg border border-border text-foreground text-sm"
         >
           <option value="">All Levels</option>
           {levels?.map((l) => (
@@ -301,23 +302,23 @@ export default function CoursesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         ) : courses.length === 0 ? (
-          <div className="text-center py-16 text-white/25 text-sm">
+          <div className="text-center py-16 text-foreground text-sm">
             No courses found.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06]">
+              <tr className="border-b border-border">
                 {["Code", "Title", "Programme", "Level", ""].map((h) => (
                   <th
                     key={h}
-                    className="text-left px-4 py-3 text-xs text-white/30 uppercase"
+                    className="text-left px-4 py-3 text-xs text-foreground uppercase"
                   >
                     {h}
                   </th>
@@ -325,22 +326,22 @@ export default function CoursesPage() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-border">
               {courses.map((c) => (
                 <tr key={c.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 font-mono text-teal-400 text-xs">
+                  <td className="px-4 py-3 font-mono text-primary text-xs">
                     {c.course_code}
                   </td>
 
-                  <td className="px-4 py-3 text-white/85 text-xs">
+                  <td className="px-4 py-3 text-foreground text-xs">
                     {c.course_title}
                   </td>
 
-                  <td className="px-4 py-3 text-white/50 text-xs">
+                  <td className="px-4 py-3 text-foreground text-xs">
                     {c.programme_name}
                   </td>
 
-                  <td className="px-4 py-3 text-white/50 text-xs">
+                  <td className="px-4 py-3 text-foreground text-xs">
                     {c.level_name}
                   </td>
 
@@ -348,7 +349,7 @@ export default function CoursesPage() {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setModal({ open: true, course: c })}
-                        className="p-1.5 text-white/40 hover:text-white"
+                        className="p-1.5 text-foreground hover:text-muted-foreground"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -358,7 +359,7 @@ export default function CoursesPage() {
                           if (confirm(`Delete ${c.course_code}?`))
                             deleteMutation.mutate(c.id);
                         }}
-                        className="p-1.5 text-rose-400/40 hover:text-rose-400"
+                        className="p-1.5 text-rose-400 hover:text-rose-400/40"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -375,7 +376,7 @@ export default function CoursesPage() {
 
       {totalPages > 1 && (
         <div className="flex justify-between items-center">
-          <p className="text-xs text-white/30">
+          <p className="text-xs text-foreground">
             Page {page} of {totalPages}
           </p>
 
@@ -384,14 +385,14 @@ export default function CoursesPage() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
             >
-              <ChevronLeft className="w-4 h-4 text-white/40" />
+              <ChevronLeft className="w-4 h-4 text-foreground" />
             </button>
 
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
             >
-              <ChevronRight className="w-4 h-4 text-white/40" />
+              <ChevronRight className="w-4 h-4 text-foreground" />
             </button>
           </div>
         </div>

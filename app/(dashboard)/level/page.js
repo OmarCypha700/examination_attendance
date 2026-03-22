@@ -16,8 +16,8 @@ import {
 import toast from "react-hot-toast";
 import { ImportModal } from "@/components/ImportModal";
 
-const inputCls =
-  "w-full h-10 px-3 rounded-xl bg-navy-950 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
+const inputClasses =
+  "w-full h-10 px-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
 
 // ── Level Modal ─────────────────────────────────────────
 function LevelModal({ level, onClose }) {
@@ -49,28 +49,28 @@ function LevelModal({ level, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <h2 className="font-bold text-lg text-white">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <h2 className="font-bold text-lg text-foreground">
             {level ? "Edit Level" : "Add Level"}
           </h2>
 
           <button onClick={onClose}>
-            <X className="w-5 h-5 text-white/30 hover:text-white/70" />
+            <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs text-white/40">Level Name *</label>
+            <label className="text-xs text-foreground">Level Name *</label>
 
             <input
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Level 100"
-              className={inputCls}
+              className={inputClasses}
             />
           </div>
 
@@ -78,7 +78,7 @@ function LevelModal({ level, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm"
+              className="flex-1 h-10 rounded-lg border border-border text-foreground hover:text-muted-foreground transition-colors"
             >
               Cancel
             </button>
@@ -86,7 +86,7 @@ function LevelModal({ level, onClose }) {
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2"
+              className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/40 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2"
             >
               {mutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -154,8 +154,8 @@ export default function LevelsPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Levels</h1>
-          <p className="text-white/40 text-sm">{levels.length} levels</p>
+          <h1 className="text-3xl font-bold text-foreground">Levels</h1>
+          <p className="text-muted-foreground text-sm">{levels.length} levels</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export default function LevelsPage() {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 text-xs font-medium transition-all"
           >
             <FileDown className="w-3.5 h-3.5" /> XLSX
           </button>
@@ -173,7 +173,7 @@ export default function LevelsPage() {
 
           <button
             onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-teal-500/25 bg-teal-500/5 text-teal-400 hover:bg-teal-500/10 text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-primary/25 bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium transition-all"
           >
             <Upload className="w-3.5 h-3.5" /> Import
           </button>
@@ -182,7 +182,7 @@ export default function LevelsPage() {
 
           <button
             onClick={() => setModal({ open: true, level: null })}
-            className="flex items-center gap-2 px-4 h-9 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm"
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-primary hover:bg-primary/40 text-primary-foreground font-semibold text-sm"
           >
             <Plus className="w-4 h-4" /> Add Level
           </button>
@@ -192,32 +192,32 @@ export default function LevelsPage() {
       {/* Search */}
 
       <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground" />
 
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search level..."
-          className="w-full h-10 pl-9 rounded-xl bg-navy-800 border border-white/10 text-white text-sm"
+          className="w-full h-9 pl-9 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors"
         />
       </div>
 
       {/* Table */}
 
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         ) : filteredLevels.length === 0 ? (
-          <div className="text-center py-16 text-white/25 text-sm">
+          <div className="text-center py-16 text-muted-foreground text-sm">
             No levels found.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06]">
-                <th className="text-left px-4 py-3 text-xs text-white/30 uppercase">
+              <tr className="border-b border-border">
+                <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase">
                   Level Name
                 </th>
 
@@ -225,16 +225,16 @@ export default function LevelsPage() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-border">
               {filteredLevels.map((l) => (
-                <tr key={l.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 text-white/85 text-sm">{l.name}</td>
+                <tr key={l.id} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-4 py-3 text-foreground text-sm">{l.name}</td>
 
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setModal({ open: true, level: l })}
-                        className="p-1.5 text-white/40 hover:text-white"
+                        className="p-1.5 text-foreground hover:text-muted-foreground transition-colors"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -244,7 +244,7 @@ export default function LevelsPage() {
                           if (confirm(`Delete ${l.name}?`))
                             deleteMutation.mutate(l.id);
                         }}
-                        className="p-1.5 text-rose-400/40 hover:text-rose-400"
+                        className="p-1.5 text-rose-400 hover:text-rose-400/40 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

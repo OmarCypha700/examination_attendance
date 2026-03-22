@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }) {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-navy-950">
+    <div className="flex min-h-screen">
       <Sidebar/>
       <main className="flex-1 overflow-y-auto min-w-0">
         {children}

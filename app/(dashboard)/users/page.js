@@ -32,8 +32,8 @@ const ROLE_CONFIG = {
     cls: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   },
 };
-const inputCls =
-  "w-full h-10 px-3 rounded-xl bg-navy-950 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
+const inputClasses =
+  "w-full h-10 px-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
 
 // ── User Modal ────────────────────────────────────────────────────────────────
 function UserModal({ user, onClose }) {
@@ -84,37 +84,37 @@ function UserModal({ user, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <h2 className="font-bold text-lg text-white">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <h2 className="font-bold text-lg text-foreground">
             {user ? "Edit Staff" : "New Staff Account"}
           </h2>
           <button
             onClick={onClose}
-            className="text-white/30 hover:text-white/70"
+            className="text-foreground/50 hover:text-foreground/80"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs text-white/40">Username *</label>
+            <label className="text-xs text-foreground">Username *</label>
             <input
               value={form.username}
               onChange={(e) => upd("username", e.target.value)}
               required
               placeholder="john.doe"
-              className={inputCls}
+              className={inputClasses}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs text-white/40">Role *</label>
+              <label className="text-xs text-foreground">Role *</label>
               <select
                 value={form.role}
                 onChange={(e) => upd("role", e.target.value)}
-                className={inputCls + " appearance-none"}
+                className={inputClasses + " appearance-none"}
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>
@@ -124,29 +124,30 @@ function UserModal({ user, onClose }) {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-white/40">Phone</label>
+              <label className="text-xs text-foreground">Phone</label>
               <input
                 value={form.phone_number}
                 onChange={(e) => upd("phone_number", e.target.value)}
                 placeholder="+233 …"
-                className={inputCls}
+                className={inputClasses}
               />
             </div>
           </div>
           {!user && (
             <>
               <div className="space-y-1.5">
-                <label className="text-xs text-white/40">Password *</label>
+                <label className="text-xs text-foreground">Password *</label>
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) => upd("password", e.target.value)}
                   required
-                  className={inputCls}
+                  className={inputClasses}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-white/40">
+                <label className="text-xs text-foreground">
+
                   Confirm Password *
                 </label>
                 <input
@@ -154,7 +155,7 @@ function UserModal({ user, onClose }) {
                   value={form.confirm_password}
                   onChange={(e) => upd("confirm_password", e.target.value)}
                   required
-                  className={inputCls}
+                  className={inputClasses}
                 />
               </div>
             </>
@@ -163,14 +164,14 @@ function UserModal({ user, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm transition-colors"
+              className="flex-1 h-10 rounded-lg border border-border text-foreground/50 hover:text-foreground/80 text-sm transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+              className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/80 disabled:opacity-50 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 transition-all"
             >
               {mutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -188,20 +189,20 @@ function UserModal({ user, onClose }) {
 function UserCard({ u, onEdit, onDelete }) {
   const cfg = ROLE_CONFIG[u.role] ?? {
     label: u.role,
-    cls: "bg-white/5 text-white/30 border-white/10",
+    cls: "bg-muted/50 text-foreground border-border",
   };
   const Icon = cfg.icon ?? ShieldCheck;
   return (
-    <div className="bg-white/[0.02] hover:bg-white/[0.035] border border-white/[0.06] rounded-2xl p-5 space-y-4 transition-colors">
+    <div className="bg-card hover:bg-background border border-b border-border rounded-2xl p-5 space-y-4 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/15 flex items-center justify-center flex-shrink-0">
-            <span className="font-bold text-teal-400 text-sm">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center flex-shrink-0">
+            <span className="font-bold text-primary text-sm">
               {u.username[0]?.toUpperCase()}
             </span>
           </div>
           <div>
-            <p className="font-semibold text-white text-sm">{u.username}</p>
+            <p className="font-semibold text-foreground text-sm">{u.username}</p>
             <span
               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold mt-0.5 ${cfg.cls}`}
             >
@@ -215,29 +216,29 @@ function UserCard({ u, onEdit, onDelete }) {
             "text-[10px] px-2 py-0.5 rounded-md border font-semibold",
             u.is_active
               ? "bg-teal-500/10 text-teal-400 border-teal-500/20"
-              : "bg-white/5 text-white/25 border-white/10",
+              : "bg-muted/50 text-muted-foreground border-border",
           )}
         >
           {u.is_active ? "Active" : "Off"}
         </span>
       </div>
       {u.phone_number && (
-        <div className="flex items-center gap-2 text-xs text-white/35">
+        <div className="flex items-center gap-2 text-xs text-foreground/80">
           <Phone className="w-3.5 h-3.5" />
           {u.phone_number}
         </div>
       )}
-      <p className="text-xs text-white/20">Joined {formatDate(u.created_at)}</p>
-      <div className="flex gap-2 pt-1 border-t border-white/[0.05]">
+      <p className="text-xs text-muted-foreground">Joined {formatDate(u.created_at)}</p>
+      <div className="flex gap-2 pt-1 border-t border-border">
         <button
           onClick={() => onEdit(u)}
-          className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs text-white/40 hover:text-white/80 hover:bg-white/5 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs text-foreground hover:text-muted-foreground hover:bg-muted/50 transition-colors"
         >
           <Edit2 className="w-3.5 h-3.5" /> Edit
         </button>
         <button
           onClick={() => onDelete(u)}
-          className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs text-rose-400/40 hover:text-rose-400 hover:bg-rose-500/5 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs text-rose-400 hover:text-rose-400/40 hover:bg-rose-500/5 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" /> Delete
         </button>
@@ -284,8 +285,8 @@ export default function UsersPage() {
     <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-bold text-3xl text-white">Staff Users</h1>
-          <p className="text-white/40 text-sm mt-1">{users.length} accounts</p>
+          <h1 className="font-bold text-3xl text-foreground">Staff Users</h1>
+          <p className="text-muted-foreground text-sm mt-1">{users.length} accounts</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -294,7 +295,7 @@ export default function UsersPage() {
             <button
               onClick={() => handleExport("xlsx")}
               disabled={exporting}
-              className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/5 text-xs font-medium transition-all disabled:opacity-40"
+              className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-border text-foreground hover:text-muted-foreground hover:bg-muted/50 text-xs font-medium transition-all disabled:opacity-40"
             >
               <FileDown className="w-3.5 h-3.5" /> XLSX
             </button>
@@ -302,14 +303,14 @@ export default function UsersPage() {
           {/* Import */}
           <button
             onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 px-3 h-9 rounded-xl border border-teal-500/25 bg-teal-500/5 text-teal-400 hover:bg-teal-500/10 text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 h-9 rounded-lg border border-primary/25 bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium transition-all"
           >
             <Upload className="w-3.5 h-3.5" /> Import
           </button>
           {/* Add */}
           <button
             onClick={() => setModal({ open: true, user: null })}
-            className="flex items-center gap-2 px-4 h-9 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm transition-all shadow-[0_0_20px_rgba(45,212,191,0.2)]"
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-primary hover:opacity-90 text-primary-foreground font-semibold text-sm transition-all shadow-[0_0_20px_rgba(45,212,191,0.2)]"
           >
             <Plus className="w-4 h-4" /> New Account
           </button>
@@ -318,7 +319,7 @@ export default function UsersPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
+          <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

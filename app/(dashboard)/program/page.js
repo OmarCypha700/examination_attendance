@@ -17,7 +17,7 @@ import toast from "react-hot-toast";
 import { ImportModal } from "@/components/ImportModal";
 
 const inputCls =
-  "w-full h-10 px-3 rounded-xl bg-navy-950 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
+  "w-full h-10 px-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
 
 // ── Program Modal ─────────────────────────────────────────
 function ProgramModal({ program, onClose }) {
@@ -50,21 +50,21 @@ function ProgramModal({ program, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-navy-800 border border-white/10 rounded-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-          <h2 className="font-bold text-lg text-white">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-5 border-b border-border">
+          <h2 className="font-bold text-lg text-foreground">
             {program ? "Edit Program" : "Add Program"}
           </h2>
 
           <button onClick={onClose}>
-            <X className="w-5 h-5 text-white/30 hover:text-white/70" />
+            <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs text-white/40">Name *</label>
+            <label className="text-xs text-foreground">Name *</label>
 
             <input
               required
@@ -75,8 +75,8 @@ function ProgramModal({ program, onClose }) {
             />
           </div>
 
-            <div className="space-y-1.5">
-            <label className="text-xs text-white/40">Code *</label>
+          <div className="space-y-1.5">
+            <label className="text-xs text-foreground">Code *</label>
 
             <input
               required
@@ -91,7 +91,7 @@ function ProgramModal({ program, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 h-10 rounded-xl border border-white/10 text-white/50 hover:text-white/80 text-sm"
+              className="flex-1 h-10 rounded-lg border border-border text-foreground hover:text-muted-foreground transition-colors"
             >
               Cancel
             </button>
@@ -99,7 +99,7 @@ function ProgramModal({ program, onClose }) {
             <button
               type="submit"
               disabled={mutation.isPending}
-              className="flex-1 h-10 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm flex items-center justify-center gap-2"
+              className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/40 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2"
             >
               {mutation.isPending && (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -145,9 +145,10 @@ export default function ProgramPage() {
 
   const programs = data ?? [];
 
-  const filteredPrograms = programs.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.code.toLowerCase().includes(search.toLowerCase()),
+  const filteredPrograms = programs.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.code.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -156,14 +157,14 @@ export default function ProgramPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Programs</h1>
-          <p className="text-white/40 text-sm">{programs.length} programs</p>
+          <h1 className="text-3xl font-bold text-foreground">Programs</h1>
+          <p className="text-muted-foreground text-sm">{programs.length} programs</p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModal({ open: true, program: null })}
-            className="flex items-center gap-2 px-4 h-9 rounded-xl bg-teal-500 hover:bg-teal-400 text-navy-950 font-semibold text-sm"
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-primary hover:bg-primary/40 text-primary-foreground font-semibold text-sm"
           >
             <Plus className="w-4 h-4" /> Add Program
           </button>
@@ -173,35 +174,35 @@ export default function ProgramPage() {
       {/* Search */}
 
       <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search program..."
-          className="w-full h-10 pl-9 rounded-xl bg-navy-800 border border-white/10 text-white text-sm"
+          className="w-full h-10 pl-9 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors"
         />
       </div>
 
       {/* Table */}
 
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-6 h-6 text-teal-400 animate-spin" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         ) : filteredPrograms.length === 0 ? (
-          <div className="text-center py-16 text-white/25 text-sm">
+          <div className="text-center py-16 text-muted-foreground text-sm">
             No programs found.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06]">
-                <th className="text-left px-4 py-3 text-xs text-white/30 uppercase">
+              <tr className="border-b border-border">
+                <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase">
                   Program Name
                 </th>
-                <th className="text-left px-4 py-3 text-xs text-white/30 uppercase">
+                <th className="text-left px-4 py-3 text-xs text-muted-foreground uppercase">
                   Program Code
                 </th>
 
@@ -209,18 +210,18 @@ export default function ProgramPage() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-border">
               {filteredPrograms.map((p) => (
-                <tr key={p.id} className="hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 text-white/85 text-sm">{p.name}</td>
+                <tr key={p.id} className="hover:bg-muted/50">
+                  <td className="px-4 py-3 text-foreground text-sm">{p.name}</td>
 
-                  <td className="px-4 py-3 text-white/85 text-sm">{p.code}</td>
+                  <td className="px-4 py-3 text-foreground text-sm">{p.code}</td>
 
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => setModal({ open: true, program: p })}
-                        className="p-1.5 text-white/40 hover:text-white"
+                        className="p-1.5 text-muted-foreground hover:text-foreground"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -230,7 +231,7 @@ export default function ProgramPage() {
                           if (confirm(`Delete ${p.name}?`))
                             deleteMutation.mutate(p.id);
                         }}
-                        className="p-1.5 text-rose-400/40 hover:text-rose-400"
+                        className="p-1.5 text-rose-400 hover:text-rose-400/40 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
