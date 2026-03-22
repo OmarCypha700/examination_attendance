@@ -46,6 +46,7 @@ function ProgramModal({ program, onClose }) {
 
     mutation.mutate({
       name: name.trim(),
+      code: code.trim(),
     });
   };
 
@@ -158,7 +159,9 @@ export default function ProgramPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Programs</h1>
-          <p className="text-muted-foreground text-sm">{programs.length} programs</p>
+          <p className="text-muted-foreground text-sm">
+            {programs.length} programs
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -213,9 +216,13 @@ export default function ProgramPage() {
             <tbody className="divide-y divide-border">
               {filteredPrograms.map((p) => (
                 <tr key={p.id} className="hover:bg-muted/50">
-                  <td className="px-4 py-3 text-foreground text-sm">{p.name}</td>
+                  <td className="px-4 py-3 text-foreground text-sm">
+                    {p.name}
+                  </td>
 
-                  <td className="px-4 py-3 text-foreground text-sm">{p.code}</td>
+                  <td className="px-4 py-3 text-foreground text-sm">
+                    {p.code}
+                  </td>
 
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">

@@ -288,7 +288,7 @@ import { cn } from "@/lib/utils";
 
 export function ImportModal({
   title        = "Import Data",
-  description  = "Upload a CSV or XLSX file to import records.",
+  description  = "Upload an XLSX file to import records.",
   templateHint = [],
   onImport,
   onTemplate,
@@ -305,8 +305,8 @@ export function ImportModal({
   const pickFile = (f) => {
     if (!f) return;
     const ext = f.name.split(".").pop().toLowerCase();
-    if (!["csv", "xlsx", "xls"].includes(ext)) {
-      setError("Only CSV and XLSX files are supported.");
+    if (!["xlsx", "xls"].includes(ext)) {
+      setError("Only XLSX files are supported.");
       return;
     }
     setFile(f);
@@ -496,9 +496,9 @@ export function ImportModal({
               <button onClick={() => onTemplate("xlsx")} className={btnOutline}>
                 <FileSpreadsheet className="w-3.5 h-3.5" /> XLSX
               </button>
-              <button onClick={() => onTemplate("csv")} className={btnOutline}>
+              {/* <button onClick={() => onTemplate("csv")} className={btnOutline}>
                 <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
-              </button>
+              </button> */}
             </div>
           )}
 

@@ -519,7 +519,6 @@ export default function StudentsPage() {
             "full_name",
             "programme_code",
             "level_name",
-            "gender",
           ]}
           onImport={(file) => coreApi.students.import(file)}
           onTemplate={(fmt) => coreApi.students.template(fmt)}
