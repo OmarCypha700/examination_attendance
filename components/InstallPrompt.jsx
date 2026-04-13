@@ -79,8 +79,7 @@ export default function InstallPrompt() {
         <DialogHeader>
           <DialogTitle>Install ScanOva</DialogTitle>
           <DialogDescription>
-            Install this app for a faster, full-screen experience with offline
-            support.
+            Install this app for a faster, full-screen experience.
           </DialogDescription>
         </DialogHeader>
 

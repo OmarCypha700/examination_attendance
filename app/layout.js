@@ -4,11 +4,15 @@ import InstallPrompt from "@/components/InstallPrompt";
 import PWARegister from "@/components/PWARegister";
 
 export const metadata = {
-  title: "ScanOva – Examination Attendance System",
+  title: "ScanOva – Attendance System",
   description: "QR code powered examination attendance tracking",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ScanOva",
+  },
 };
-<meta name="apple-mobile-web-app-title" content="ScanOva" />;
 
 export default function RootLayout({ children }) {
   return (

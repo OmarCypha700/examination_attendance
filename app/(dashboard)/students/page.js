@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { coreApi, getQRCodeUrl } from "@/lib/api";
+import { generateStudentCard } from "@/lib/generateStudentCard";
+import { generateBulkStudentCards } from "@/lib/generateBulkStudentCards";
 import {
   Plus,
   Search,
@@ -17,6 +19,8 @@ import {
   Download,
   Upload,
   FileDown,
+  CreditCard,
+  Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -26,10 +30,77 @@ const inputClasses =
   "w-full h-10 mt-1 px-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
 
 // ── QR Code Modal ─────────────────────────────────────────────────────────────
+// function QRCodeModal({ student, onClose }) {
+//   const qrUrl = getQRCodeUrl(student.index_number, 260);
+//   const qrUrlLarge = getQRCodeUrl(student.index_number, 600);
+
+//   const handleDownload = () => {
+//     const link = Object.assign(document.createElement("a"), {
+//       href: qrUrlLarge,
+//       download: `qr_${student.index_number}.png`,
+//       target: "_blank",
+//     });
+//     link.click();
+//   };
+
+//   return (
+//     <div
+//       className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+//       onClick={onClose}
+//     >
+//       <div
+//         className="border border-border rounded-2xl w-full max-w-xs"
+//         onClick={(e) => e.stopPropagation()}
+//       >
+//         <div className="flex items-center justify-between p-5 border-b border-border">
+//           <h2 className="font-bold text-base text-foreground">Student QR Code</h2>
+//           <button
+//             onClick={onClose}
+//             className="text-muted-foreground hover:text-foreground transition-colors"
+//           >
+//             <X className="w-5 h-5" />
+//           </button>
+//         </div>
+//         <div className="p-6 flex flex-col items-center gap-4">
+//           <div className="bg-white p-3 rounded-2xl shadow-lg">
+//             <Image
+//               src={qrUrl}
+//               alt={`QR for ${student.index_number}`}
+//               width={200}
+//               height={200}
+//               className="block rounded-lg"
+//             />
+//           </div>
+//           <div className="text-center">
+//             <p className="font-mono font-bold text-primary text-sm tracking-wider">
+//               {student.index_number}
+//             </p>
+//             <p className="text-muted-foreground text-sm mt-0.5">{student.full_name}</p>
+//             <p className="text-muted-foreground text-xs mt-0.5">
+//               {student.programme_name} · {student.level_name}
+//             </p>
+//           </div>
+//           <p className="text-muted-foreground text-xs text-center">
+//             Encodes the student's index number. Point the scanner at it to
+//             record attendance.
+//           </p>
+//           <button
+//             onClick={handleDownload}
+//             className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-sm font-medium transition-all"
+//           >
+//             <Download className="w-4 h-4" /> Download QR Code
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 function QRCodeModal({ student, onClose }) {
   const qrUrl = getQRCodeUrl(student.index_number, 260);
   const qrUrlLarge = getQRCodeUrl(student.index_number, 600);
 
+  // ── plain QR download (unchanged) ────────────────────────────────────────
   const handleDownload = () => {
     const link = Object.assign(document.createElement("a"), {
       href: qrUrlLarge,
@@ -37,6 +108,32 @@ function QRCodeModal({ student, onClose }) {
       target: "_blank",
     });
     link.click();
+  };
+
+  // ── ID-card download ──────────────────────────────────────────────────────
+  const [generatingCard, setGeneratingCard] = useState(false);
+
+  const handleDownloadCard = async () => {
+    setGeneratingCard(true);
+    try {
+      const dataUrl = await generateStudentCard(student, qrUrlLarge, {
+        institutionName: "COLLEGE OF NURSING AND MIDWIFERY, TANOSO-AHAFO",
+        contactPhone: "+233 XX XXX XXXX",
+        contactEmail: "exams@institution.edu.gh",
+      });
+
+      const link = Object.assign(document.createElement("a"), {
+        href: dataUrl,
+        download: `exam_card_${student.index_number}.png`,
+      });
+      link.click();
+      toast.success("Card downloaded!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate card. Please try again.");
+    } finally {
+      setGeneratingCard(false);
+    }
   };
 
   return (
@@ -48,8 +145,11 @@ function QRCodeModal({ student, onClose }) {
         className="border border-border rounded-2xl w-full max-w-xs"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
-          <h2 className="font-bold text-base text-foreground">Student QR Code</h2>
+          <h2 className="font-bold text-base text-foreground">
+            Student QR Code
+          </h2>
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -57,7 +157,10 @@ function QRCodeModal({ student, onClose }) {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Body */}
         <div className="p-6 flex flex-col items-center gap-4">
+          {/* QR image */}
           <div className="bg-white p-3 rounded-2xl shadow-lg">
             <Image
               src={qrUrl}
@@ -67,26 +170,111 @@ function QRCodeModal({ student, onClose }) {
               className="block rounded-lg"
             />
           </div>
+
+          {/* Student details */}
           <div className="text-center">
             <p className="font-mono font-bold text-primary text-sm tracking-wider">
               {student.index_number}
             </p>
-            <p className="text-muted-foreground text-sm mt-0.5">{student.full_name}</p>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              {student.full_name}
+            </p>
             <p className="text-muted-foreground text-xs mt-0.5">
               {student.programme_name} · {student.level_name}
             </p>
           </div>
+
           <p className="text-muted-foreground text-xs text-center">
-            Encodes the student's index number. Point the scanner at it to
+            Encodes the student&apos;s index number. Point the scanner at it to
             record attendance.
           </p>
-          <button
-            onClick={handleDownload}
-            className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-sm font-medium transition-all"
-          >
-            <Download className="w-4 h-4" /> Download QR Code
-          </button>
+
+          {/* Action buttons */}
+          <div className="w-full flex flex-col gap-2">
+            {/* Download QR only */}
+            <button
+              onClick={handleDownload}
+              className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-sm font-medium transition-all"
+            >
+              <Download className="w-4 h-4" />
+              Download QR Code
+            </button>
+
+            {/* Download printable ID card */}
+            <button
+              onClick={handleDownloadCard}
+              disabled={generatingCard}
+              className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generatingCard ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating card…
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Download ID Card (54×85 mm)
+                </>
+              )}
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function BulkExportModal({ progress, done, total, onCancel }) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6 space-y-5">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Users className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm text-foreground">
+              Generating Cards PDF
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Please wait — do not close this tab
+            </p>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="space-y-2">
+          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-200"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>
+              {done} of {total} students
+            </span>
+            <span>{pct}%</span>
+          </div>
+        </div>
+
+        {/* Animated dots */}
+        <p className="text-xs text-center text-muted-foreground animate-pulse">
+          Rendering card {done + 1}…
+        </p>
+
+        {/* Cancel (best-effort — generation cannot truly be aborted mid-loop) */}
+        <button
+          onClick={onCancel}
+          disabled={pct > 0}
+          className="w-full h-9 rounded-xl border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -149,16 +337,16 @@ function StudentModal({ student, programs, levels, onClose }) {
         </div>
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* <div className="grid grid-cols-2 gap-3"> */}
-            <div className="space-y-1.5">
-              <label className="text-xs text-foreground">Index Number *</label>
-              <input
-                value={form.index_number}
-                onChange={(e) => upd("index_number", e.target.value)}
-                required
-                placeholder="2024/0001"
-                className={inputClasses}
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-foreground">Index Number *</label>
+            <input
+              value={form.index_number}
+              onChange={(e) => upd("index_number", e.target.value)}
+              required
+              placeholder="2024/0001"
+              className={inputClasses}
+            />
+          </div>
           {/* </div> */}
           <div className="space-y-1.5">
             <label className="text-xs text-foreground">Full Name *</label>
@@ -247,6 +435,9 @@ export default function StudentsPage() {
   const [showImport, setShowImport] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  const [bulkExporting, setBulkExporting] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
+
   const params = { page, page_size: PAGE_SIZE };
   if (search) params.search = search;
   if (programme) params.programme = programme;
@@ -285,6 +476,40 @@ export default function StudentsPage() {
     }
   };
 
+  async function handleBulkCardExport() {
+    // Fetch ALL students without pagination
+    setBulkExporting(true);
+    setBulkProgress({ done: 0, total: 0 });
+    try {
+      const allStudents = await coreApi.students
+        .list({ page_size: 9999 })
+        .then((r) => r.data.results);
+
+      if (!allStudents.length) {
+        toast.error("No students found to export.");
+        return;
+      }
+
+      setBulkProgress({ done: 0, total: allStudents.length });
+
+      await generateBulkStudentCards(allStudents, getQRCodeUrl, {
+        institutionName: "YOUR INSTITUTION NAME", // ← change me
+        contactPhone: "+233 XX XXX XXXX", // ← change me
+        contactEmail: "exams@institution.edu.gh", // ← change me
+        filename: "student_exam_cards",
+        onProgress: (done, total) => setBulkProgress({ done, total }),
+      });
+
+      toast.success(`PDF downloaded — ${allStudents.length} cards`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Bulk export failed. Please try again.");
+    } finally {
+      setBulkExporting(false);
+      setBulkProgress({ done: 0, total: 0 });
+    }
+  }
+
   const students = data?.results ?? [];
   const programsList = programs ?? [];
   const levelsList = levels ?? [];
@@ -315,6 +540,19 @@ export default function StudentsPage() {
               <FileDown className="w-3.5 h-3.5" /> XLSX
             </button>
           </div>
+
+          {/* Bulk card export */}
+          <button
+            onClick={handleBulkCardExport}
+            disabled={bulkExporting}
+            className={cn(
+              btnBase,
+              "border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 disabled:opacity-40",
+            )}
+          >
+            <Users className="w-3.5 h-3.5" />
+            Print All Cards
+          </button>
 
           {/* Import */}
           <button
@@ -422,11 +660,15 @@ export default function StudentsPage() {
                     <td className="font-mono text-primary text-xs font-medium p-2">
                       {s.index_number}
                     </td>
-                    <td className="text-foreground text-xs p-2">{s.full_name}</td>
+                    <td className="text-foreground text-xs p-2">
+                      {s.full_name}
+                    </td>
                     <td className="text-foreground text-xs p-2">
                       {s.programme_name}
                     </td>
-                    <td className="text-foreground text-xs p-2">{s.level_name}</td>
+                    <td className="text-foreground text-xs p-2">
+                      {s.level_name}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={cn(
@@ -525,6 +767,14 @@ export default function StudentsPage() {
           onTemplate={(fmt) => coreApi.students.template(fmt)}
           onClose={() => setShowImport(false)}
           onSuccess={() => qc.invalidateQueries({ queryKey: ["students"] })}
+        />
+      )}
+
+      {bulkExporting && (
+        <BulkExportModal
+          done={bulkProgress.done}
+          total={bulkProgress.total}
+          onCancel={() => setBulkExporting(false)}
         />
       )}
     </div>
