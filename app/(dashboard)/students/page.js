@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { coreApi, getQRCodeUrl } from "@/lib/api";
@@ -21,6 +21,12 @@ import {
   FileDown,
   CreditCard,
   Users,
+  CheckCircle2,
+  Ban,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  RotateCcw,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -352,8 +358,31 @@ function StudentModal({ student, programs, levels, onClose }) {
   );
 }
 
+// ── Sortable column header ──────────────────────────────────────────────────
+function SortableTh({ field, ordering, onSort, children }) {
+  const active = ordering === field || ordering === `-${field}`;
+  const desc = ordering === `-${field}`;
+  const Icon = !active ? ArrowUpDown : desc ? ArrowDown : ArrowUp;
+
+  return (
+    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+      <button
+        onClick={() => onSort(field)}
+        className={cn(
+          "flex items-center gap-1 hover:text-foreground transition-colors",
+          active && "text-foreground",
+        )}
+      >
+        {children}
+        <Icon className="w-3 h-3" />
+      </button>
+    </th>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
+const SEARCH_DEBOUNCE_MS = 350;
 
 const btnBase =
   "flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-medium transition-all duration-150";
@@ -361,10 +390,15 @@ const btnBase =
 export default function StudentsPage() {
   const qc = useQueryClient();
 
+  // searchInput updates on every keystroke; `search` is the debounced value
+  // that actually drives the query, so we don't hit the API on every key press.
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [programme, setProgramme] = useState("");
   const [level, setLevel] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[1]);
+  const [ordering, setOrdering] = useState("index_number");
   const [modal, setModal] = useState({ open: false, student: null });
   const [qrStudent, setQrStudent] = useState(null);
   const [showImport, setShowImport] = useState(false);
@@ -373,14 +407,30 @@ export default function StudentsPage() {
   const [bulkExporting, setBulkExporting] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
 
-  const params = { page, page_size: PAGE_SIZE };
-  if (search) params.search = search;
-  if (programme) params.programme = programme;
-  if (level) params.level = level;
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [selectingAll, setSelectingAll] = useState(false);
+  const headerCheckboxRef = useRef(null);
 
-  const { data, isLoading } = useQuery({
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const params = useMemo(() => {
+    const p = { page, page_size: pageSize, ordering };
+    if (search) p.search = search;
+    if (programme) p.programme = programme;
+    if (level) p.level = level;
+    return p;
+  }, [page, pageSize, ordering, search, programme, level]);
+
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ["students", params],
     queryFn: () => coreApi.students.list(params).then((r) => r.data),
+    keepPreviousData: true,
   });
   const { data: programs } = useQuery({
     queryKey: ["programs"],
@@ -391,6 +441,12 @@ export default function StudentsPage() {
     queryFn: () => coreApi.levels.list().then((r) => r.data),
   });
 
+  // Selection is scoped to the current filters/page — clear it whenever
+  // any of those change so stale ids from a different view can't linger.
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [search, programme, level, page, pageSize, ordering]);
+
   const deleteMutation = useMutation({
     mutationFn: (id) => coreApi.students.delete(id),
     onSuccess: () => {
@@ -399,6 +455,58 @@ export default function StudentsPage() {
     },
     onError: () => toast.error("Cannot delete student"),
   });
+
+  const bulkActionMutation = useMutation({
+    mutationFn: ({ action, ids }) => coreApi.students.bulkAction(action, ids),
+    onSuccess: (res, variables) => {
+      qc.invalidateQueries({ queryKey: ["students"] });
+      const result = res?.data ?? res;
+      if (variables.action === "delete") {
+        const blockedCount = result.blocked?.length ?? 0;
+        if (blockedCount) {
+          toast.error(
+            `Deleted ${result.deleted}. ${blockedCount} skipped — they have exam attendance records.`,
+          );
+        } else {
+          toast.success(`Deleted ${result.deleted} student(s).`);
+        }
+      } else {
+        toast.success(
+          `${result.updated} student(s) ${variables.action === "activate" ? "activated" : "deactivated"}.`,
+        );
+      }
+      setSelectedIds(new Set());
+    },
+    onError: () => toast.error("Bulk action failed. Please try again."),
+  });
+
+  const runBulkAction = (action) => {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return;
+    if (
+      action === "delete" &&
+      !confirm(
+        `Delete ${ids.length} selected student${ids.length > 1 ? "s" : ""}? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    bulkActionMutation.mutate({ action, ids });
+  };
+
+  const toggleSort = (field) => {
+    setOrdering((prev) => (prev === field ? `-${field}` : field));
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchInput("");
+    setSearch("");
+    setProgramme("");
+    setLevel("");
+    setPage(1);
+  };
+  const filtersActive = Boolean(search || programme || level);
 
   const handleExport = async (fmt) => {
     setExporting(true);
@@ -448,7 +556,56 @@ export default function StudentsPage() {
   const students = data?.results ?? [];
   const programsList = programs ?? [];
   const levelsList = levels ?? [];
-  const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE);
+  const totalCount = data?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const pageIds = students.map((s) => s.id);
+  const allOnPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+  const someOnPageSelected = pageIds.some((id) => selectedIds.has(id));
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate =
+        someOnPageSelected && !allOnPageSelected;
+    }
+  }, [someOnPageSelected, allOnPageSelected]);
+
+  const toggleSelectAllOnPage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allOnPageSelected) {
+        pageIds.forEach((id) => next.delete(id));
+      } else {
+        pageIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllMatching = async () => {
+    setSelectingAll(true);
+    try {
+      const { page: _p, page_size: _ps, ...filterParams } = params;
+      const all = await coreApi.students
+        .list({ ...filterParams, page_size: 9999 })
+        .then((r) => r.data.results ?? r.data);
+      setSelectedIds(new Set(all.map((s) => s.id)));
+      toast.success(`Selected all ${all.length} matching students.`);
+    } catch {
+      toast.error("Could not select all matching students.");
+    } finally {
+      setSelectingAll(false);
+    }
+  };
 
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
@@ -457,7 +614,10 @@ export default function StudentsPage() {
         <div>
           <h1 className="font-bold text-2xl text-foreground">Students</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {data?.count ?? 0} registered
+            {totalCount} registered
+            {isFetching && !isLoading && (
+              <Loader2 className="inline w-3 h-3 ml-2 animate-spin align-middle" />
+            )}
           </p>
         </div>
 
@@ -514,16 +674,13 @@ export default function StudentsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-48 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search name or index…"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search name, index, programme…"
             className="w-full h-9 pl-9 pr-4 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
@@ -557,7 +714,99 @@ export default function StudentsPage() {
             </option>
           ))}
         </select>
+
+        {filtersActive && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Clear filters
+          </button>
+        )}
+
+        <div className="ml-auto flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">Rows</label>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+            className="h-9 px-3 rounded-lg bg-background border border-input text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            {PAGE_SIZE_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between gap-3 flex-wrap px-4 py-3 rounded-xl border border-primary/30 bg-primary/5">
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-sm font-medium text-foreground">
+              {selectedIds.size} selected
+            </p>
+            {allOnPageSelected && totalCount > pageIds.length && (
+              <button
+                onClick={selectAllMatching}
+                disabled={selectingAll}
+                className="text-xs text-primary hover:underline disabled:opacity-50"
+              >
+                {selectingAll
+                  ? "Selecting…"
+                  : `Select all ${totalCount} matching students`}
+              </button>
+            )}
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => runBulkAction("activate")}
+              disabled={bulkActionMutation.isPending}
+              className={cn(
+                btnBase,
+                "border border-teal-500/30 bg-teal-500/10 text-teal-500 hover:bg-teal-500/20 disabled:opacity-40",
+              )}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" /> Activate
+            </button>
+            <button
+              onClick={() => runBulkAction("deactivate")}
+              disabled={bulkActionMutation.isPending}
+              className={cn(
+                btnBase,
+                "border border-border text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-40",
+              )}
+            >
+              <Ban className="w-3.5 h-3.5" /> Deactivate
+            </button>
+            <button
+              onClick={() => runBulkAction("delete")}
+              disabled={bulkActionMutation.isPending}
+              className={cn(
+                btnBase,
+                "border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 disabled:opacity-40",
+              )}
+            >
+              {bulkActionMutation.isPending ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -574,24 +823,52 @@ export default function StudentsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Index", "Name", "Programme", "Level", "Status", ""].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  <th className="p-3 w-10">
+                    <input
+                      ref={headerCheckboxRef}
+                      type="checkbox"
+                      checked={allOnPageSelected}
+                      onChange={toggleSelectAllOnPage}
+                      className="w-4 h-4 rounded accent-primary cursor-pointer"
+                      aria-label="Select all students on this page"
+                    />
+                  </th>
+                  <SortableTh field="index_number" ordering={ordering} onSort={toggleSort}>
+                    Index
+                  </SortableTh>
+                  <SortableTh field="full_name" ordering={ordering} onSort={toggleSort}>
+                    Name
+                  </SortableTh>
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                    Programme
+                  </th>
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                    Level
+                  </th>
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+                    Status
+                  </th>
+                  <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {students.map((s) => (
                   <tr
                     key={s.id}
-                    className="hover:bg-accent/40 transition-colors"
+                    className={cn(
+                      "hover:bg-accent/40 transition-colors",
+                      selectedIds.has(s.id) && "bg-primary/5",
+                    )}
                   >
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(s.id)}
+                        onChange={() => toggleSelectOne(s.id)}
+                        className="w-4 h-4 rounded accent-primary cursor-pointer"
+                        aria-label={`Select ${s.full_name}`}
+                      />
+                    </td>
                     <td className="font-mono text-primary text-xs font-medium p-2">
                       {s.index_number}
                     </td>
@@ -654,7 +931,7 @@ export default function StudentsPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-xs text-primary">
-            Page {page} of {totalPages} · {data?.count} total
+            Page {page} of {totalPages} · {totalCount} total
           </p>
           <div className="flex gap-2">
             <button
@@ -715,4 +992,3 @@ export default function StudentsPage() {
     </div>
   );
 }
-

@@ -327,7 +327,7 @@ export default function ScanPage() {
               </option>
               {activeSessions.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.course_code} — {s.course_title} ({s.programme_name})
+                  {s.course_code} — {s.course_title} ({s.programme_name} Level {s.level_name})
                 </option>
               ))}
             </select>
