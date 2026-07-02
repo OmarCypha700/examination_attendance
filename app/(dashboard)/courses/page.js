@@ -277,7 +277,7 @@ export default function CoursesPage() {
         <select
           value={programme}
           onChange={(e) => setProgramme(e.target.value)}
-          className="h-10 px-3 rounded-lg border border-border text-foreground text-sm"
+          className="h-9 px-4 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring min-w-[140px]"
         >
           <option value="">All Programmes</option>
           {programs?.map((p) => (
@@ -290,7 +290,7 @@ export default function CoursesPage() {
         <select
           value={level}
           onChange={(e) => setLevel(e.target.value)}
-          className="h-10 px-3 rounded-lg border border-border text-foreground text-sm"
+          className="h-9 px-4 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring min-w-[140px]"
         >
           <option value="">All Levels</option>
           {levels?.map((l) => (

@@ -30,71 +30,6 @@ const inputClasses =
   "w-full h-10 mt-1 px-3 rounded-lg bg-muted/50 border border-border text-foreground placeholder:text-muted-foreground/20 text-sm focus:outline-none focus:border-teal-500/40 transition-colors";
 
 // ── QR Code Modal ─────────────────────────────────────────────────────────────
-// function QRCodeModal({ student, onClose }) {
-//   const qrUrl = getQRCodeUrl(student.index_number, 260);
-//   const qrUrlLarge = getQRCodeUrl(student.index_number, 600);
-
-//   const handleDownload = () => {
-//     const link = Object.assign(document.createElement("a"), {
-//       href: qrUrlLarge,
-//       download: `qr_${student.index_number}.png`,
-//       target: "_blank",
-//     });
-//     link.click();
-//   };
-
-//   return (
-//     <div
-//       className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-//       onClick={onClose}
-//     >
-//       <div
-//         className="border border-border rounded-2xl w-full max-w-xs"
-//         onClick={(e) => e.stopPropagation()}
-//       >
-//         <div className="flex items-center justify-between p-5 border-b border-border">
-//           <h2 className="font-bold text-base text-foreground">Student QR Code</h2>
-//           <button
-//             onClick={onClose}
-//             className="text-muted-foreground hover:text-foreground transition-colors"
-//           >
-//             <X className="w-5 h-5" />
-//           </button>
-//         </div>
-//         <div className="p-6 flex flex-col items-center gap-4">
-//           <div className="bg-white p-3 rounded-2xl shadow-lg">
-//             <Image
-//               src={qrUrl}
-//               alt={`QR for ${student.index_number}`}
-//               width={200}
-//               height={200}
-//               className="block rounded-lg"
-//             />
-//           </div>
-//           <div className="text-center">
-//             <p className="font-mono font-bold text-primary text-sm tracking-wider">
-//               {student.index_number}
-//             </p>
-//             <p className="text-muted-foreground text-sm mt-0.5">{student.full_name}</p>
-//             <p className="text-muted-foreground text-xs mt-0.5">
-//               {student.programme_name} · {student.level_name}
-//             </p>
-//           </div>
-//           <p className="text-muted-foreground text-xs text-center">
-//             Encodes the student's index number. Point the scanner at it to
-//             record attendance.
-//           </p>
-//           <button
-//             onClick={handleDownload}
-//             className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 hover:bg-teal-500/20 text-sm font-medium transition-all"
-//           >
-//             <Download className="w-4 h-4" /> Download QR Code
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 
 function QRCodeModal({ student, onClose }) {
   const qrUrl = getQRCodeUrl(student.index_number, 260);
@@ -267,14 +202,14 @@ function BulkExportModal({ progress, done, total, onCancel }) {
           Rendering card {done + 1}…
         </p>
 
-        {/* Cancel (best-effort — generation cannot truly be aborted mid-loop) */}
-        <button
+        {/* Cancel */}
+        {/* <button
           onClick={onCancel}
           disabled={pct > 0}
           className="w-full h-9 rounded-xl border border-border text-xs text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
         >
           Cancel
-        </button>
+        </button> */}
       </div>
     </div>
   );
@@ -493,9 +428,9 @@ export default function StudentsPage() {
       setBulkProgress({ done: 0, total: allStudents.length });
 
       await generateBulkStudentCards(allStudents, getQRCodeUrl, {
-        institutionName: "YOUR INSTITUTION NAME", // ← change me
-        contactPhone: "+233 XX XXX XXXX", // ← change me
-        contactEmail: "exams@institution.edu.gh", // ← change me
+        institutionName: "COLLEGE OF NURSING AND MIDWIFERY, TANOSO-AHAFO",
+        contactPhone: "+233 123 456 789",
+        contactEmail: "exams@institution.edu.gh",
         filename: "student_exam_cards",
         onProgress: (done, total) => setBulkProgress({ done, total }),
       });
@@ -780,3 +715,4 @@ export default function StudentsPage() {
     </div>
   );
 }
+
